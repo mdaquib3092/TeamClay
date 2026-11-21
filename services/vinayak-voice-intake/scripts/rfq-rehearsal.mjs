@@ -35,6 +35,15 @@ export function rehearsal(config = {}) {
     if(m&&s)db.prepare("INSERT INTO stock VALUES (?,?,?,?,?)").run(p,code,s.qty_available,s.unit,s.last_updated);
   }
   for(const u of team)db.prepare("INSERT INTO users(user_id,name,role,project_id,whatsapp) VALUES(?,?,?,?,?)").run(u.user_id,u.name,u.role,u.project_id,u.whatsapp);
+  if(!config.root){
+    // The production intake snapshots these three master files. Give the
+    // isolated rehearsal its own files; never create or replace a live CSV.
+    const escape=v=>`"${String(v??"").replaceAll('"','""')}"`;
+    for(const key of ["projects","materials","stock"]){
+      const rows=db.prepare(`SELECT * FROM ${key}`).all(),cols=Object.keys(rows[0]);
+      fs.writeFileSync(path.join(root,"data",key+".csv"),[cols.join(","),...rows.map(r=>cols.map(k=>escape(r[k])).join(","))].join("\n")+"\n");
+    }
+  }
   for(const v of ["V05","V06"])db.prepare("INSERT INTO vendors(vendor_id) VALUES(?)").run(v);
   const emails=[], alerts=[], inbox=new Map();
   const mailbox = { async send(msg){emails.push(msg);return {sent:true,messageId:`sent-${emails.length}`,threadId:`thread-${emails.length}`};},

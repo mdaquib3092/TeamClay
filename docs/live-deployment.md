@@ -50,6 +50,19 @@ node --test services/vinayak-voice-intake/tests/*.test.mjs
 
 ## Local services
 
+The registered staff WhatsApp also answers data questions without a case ID,
+by text or transcribed voice. `STOCK` returns the whole assigned site's stock
+list; ask `STOCK MAT020`, “How much PPC cement is in stock?” or “Which items
+have zero stock?” to narrow it. A HOD assigned `ALL` can name or compare sites.
+Answers show material code/name, quantity, unit and source timestamp. Blank,
+missing or mismatched quantities are unknown; `0` is a recorded zero.
+`DATA` lists the other available lookups: `MATERIALS`, `PROJECTS`, `STAFF`,
+`VENDORS`, and, for PM/HOD, `PERFORMANCE`, `SAMPLE REPLIES`, `ARCHIVED RFQS`.
+Both WhatsApp and new/corrected BOQs reread the active CSVs in `data/`.
+No reseed is needed for a stock edit. Issued BOQ revisions retain their
+captured quantities. Historical example rates and performance are labelled;
+backups and other users’ voice/chat records are not procurement master data.
+
 1. In a **new** workspace, configure the project and staff/vendor CSVs and
    run `python3 db/seed.py` to initialise `clay.db`. Preserve an active DB
    rather than resetting it to deploy code.

@@ -32,6 +32,7 @@ function unlock() {
 try {
   const config = loadConfig(values);
   config.workflowEnabled = !!values["case-root"];
+  if(config.chatEnabled)config.knowledgeRoot=values["case-root"]?path.resolve(values["case-root"]):path.dirname(path.dirname(config.usersCsv));
   if (config.workflowEnabled && !config.autoReplies) throw new Error("Case mode requires staff chat.");
   const users = loadUsers(config.usersCsv);
   for (const file of ["messages.db", "whatsapp.db"]) {

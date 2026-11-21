@@ -7,6 +7,7 @@ import { ROLE_POLICY } from "../roles.mjs";
 import { VendorDataError, vendorDirectory, availablePerformance, vendorSourceStatus } from "./vendor-data.mjs";
 import { sourceReview, comparable, deliveryWindow } from "./quote-evidence.mjs";
 import { fieldRuns, findRun, runFields, runCommand } from "./field-runs.mjs";
+import { MasterDataError } from "./master-data.mjs";
 
 const schema = fs.readFileSync(new URL("./schema.sql", import.meta.url), "utf8");
 const hash = s => createHash("sha256").update(s).digest("hex").slice(0, 12).toUpperCase();
@@ -219,7 +220,7 @@ export class CaseFlow {
         return reply;
       });
     } catch (e) {
-      if (e instanceof CaseInputError || e instanceof VendorDataError) return e.message;
+      if (e instanceof CaseInputError || e instanceof VendorDataError || e instanceof MasterDataError) return e.message;
       throw e;
     }
   }

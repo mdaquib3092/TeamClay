@@ -1,6 +1,7 @@
 import { catalogVendors } from "./vendor-data.mjs";
 import { samples } from "./samples.mjs";
 import { unit } from "./quote-terms.mjs";
+import { businessTable, verifiedQuantity } from "./master-data.mjs";
 export { formatMoney, parseTerms } from "./quote-terms.mjs";
 export { catalogVendors } from "./vendor-data.mjs";
 
@@ -23,8 +24,10 @@ export function captureScope(db, root, projectId, fields, now = Date.now()) {
   const needBy = dateValue(needed.replace(/^need(?:ed)?(?: by)?\s+/i, "").trim(), today);
   const deadline = dateValue(due.replace(/^reply(?: by)?\s+/i, "").trim(), today);
   check(needBy && deadline && today <= deadline && deadline <= needBy, "Specify a reply deadline today or later and a needed-by date on or after it (e.g. need +14 | reply +3).");
-  const project = db.prepare("SELECT project_name,address FROM projects WHERE project_id=?").get(projectId);
-  check(project?.address, "The assigned project needs a delivery address.");
+  const project = businessTable(root,"projects").find(p=>p.project_id===projectId);
+  check(project?.address && db.prepare("SELECT 1 FROM projects WHERE project_id=?").get(projectId), "The assigned project needs a delivery address in projects.csv and a mapped project ID.");
+  const materials = new Map(businessTable(root,"materials").map(m=>[m.material_code,m]));
+  const stock = new Map(businessTable(root,"stock").filter(s=>s.project_id===projectId).map(s=>[s.material_code,s]));
   const entries = items.split(";").map(s => s.trim());
   check(entries.length <= 10, "Use at most ten same-segment material lines per case.");
   const used = new Set();
@@ -32,16 +35,15 @@ export function captureScope(db, root, projectId, fields, now = Date.now()) {
     const match = /^(MAT\d+)\s+(\d+(?:\.\d{1,3})?)\s+([a-z0-9]+)$/i.exec(entry);
     check(match, "Each BOQ line must be MATERIAL_CODE quantity unit, for example MAT010 100 bags.");
     const code = match[1].toUpperCase(), total = Number(match[2]);
-    const item = db.prepare(`SELECT m.material_name,m.category,m.unit,m.specification,s.qty_available,s.unit stock_unit,s.last_updated
-      FROM materials m LEFT JOIN stock s ON s.material_code=m.material_code AND s.project_id=? WHERE m.material_code=?`).get(projectId, code);
-    check(item && !used.has(code) && total > 0 && total <= 1000000 && item.unit === unit(match[3]),
+    const item=materials.get(code),observation=stock.get(code),onHand=verifiedQuantity(observation,item);
+    check(item?.material_name && item.category && !used.has(code) && total > 0 && total <= 1000000 && item.unit === unit(match[3]),
       `${code}: check the material code, quantity, unit and duplicate lines.`);
-    check(Number.isFinite(item.qty_available) && item.qty_available >= 0 && item.stock_unit === item.unit,
-      `${code}: stock quantity/unit is not verified for this project.`);
+    check(db.prepare("SELECT 1 FROM materials WHERE material_code=?").get(code),`${code}: complete the ERP material mapping before issuing this BOQ.`);
+    check(onHand!==null&&observation.last_updated, `${code}: stock quantity, unit or timestamp is not verified in stock.csv for this project.`);
     used.add(code);
     return { code, name: item.material_name, spec: item.specification, segment: item.category.toLowerCase(),
-      unit: item.unit, requested: total, stock: item.qty_available, stockAt: item.last_updated,
-      qty: Math.max(0, Math.round((total - item.qty_available) * 1000) / 1000) };
+      unit: item.unit, requested: total, stock: onHand, stockAt: observation.last_updated,
+      qty: Math.max(0, Math.round((total - onHand) * 1000) / 1000) };
   });
   check(lines.every(l => l.segment === lines[0].segment), "Use one vendor segment per RFQ. Open separate cases for different segments.");
   const segment = lines[0].segment;

@@ -5,7 +5,7 @@ import {runScenario} from "./rfq-rehearsal.mjs";
 import {samples} from "../src/procurement/samples.mjs";
 
 const read=url=>fs.readFileSync(new URL(url,import.meta.url),"utf8");
-export async function publicSamples(templateRoot=fileURLToPath(new URL("../../../",import.meta.url))) {
+export async function publicSamples(templateRoot=process.env.TEAMCLAY_ROOT||fileURLToPath(new URL("../../../",import.meta.url))) {
   const team=["site_engineer","project_manager","hod"].map((role,i)=>({
     role,name:["Site engineer","Project manager","HOD"][i],user_id:["S","P","H"][i],project_id:i===2?"ALL":"P",whatsapp:`+1202555010${i+1}`,
   }));

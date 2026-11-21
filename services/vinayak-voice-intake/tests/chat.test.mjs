@@ -17,7 +17,7 @@ const result = (reply = "Hello from the procurement assistant.") => ({
   reply, intent: "general_help", case_reference: null, model: "deepseek-flash",
   response_model: "deepseek-flash", request_id: "test-reply", usage: { total_tokens: 20 },
 });
-function fixture(t, { autoReplies = true, beforeStart } = {}) {
+function fixture(t, { autoReplies = true, beforeStart, knowledge = false } = {}) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "vinayak-chat-"));
   const storeDir = path.join(root, "store"); fs.mkdirSync(storeDir);
   const usersCsv = path.join(root, "users.csv"); fs.writeFileSync(usersCsv, roster);
@@ -39,6 +39,14 @@ function fixture(t, { autoReplies = true, beforeStart } = {}) {
   const config = { usersCsv, storeDir, dataDir: path.join(root, "data"),
     model: "saaras:v4", apiKey: "sarvam-fake", deepseekKey: "deepseek-fake",
     chatEnabled: true, autoReplies, chatModel: "deepseek-flash", maxAudioBytes: 1024 * 1024 };
+  if(knowledge){
+    config.knowledgeRoot=root;fs.mkdirSync(config.dataDir,{recursive:true});
+    const tables={projects:"project_id,project_name,address\nP1,North Site,Road One\nP2,South Site,Road Two\n",
+      materials:"material_code,material_name,category,unit,specification\nMAT001,Cement PPC,cement,bag,50 kg\nMAT002,Brushbond RFX Coating,waterproofing,pack,Two components\nMAT003,TMT Bar 16mm,steel,mt,IS 1786\n",
+      stock:"project_id,material_code,qty_available,unit,last_updated\nP1,MAT001,0,bag,2026-11-21 10:00\nP2,MAT001,778,bag,2026-11-21 11:00\nP1,MAT002,12,pack,2026-11-21 10:00\nP1,MAT003,,mt,2026-11-21 10:00\n",
+      vendors:"vendor_id,vendor_name,category,email\nV01,Steel Supplier,steel,supplier@example.test\n"};
+    for(const [k,txt] of Object.entries(tables))fs.writeFileSync(path.join(config.dataDir,k+".csv"),txt);
+  }
   const intake = new VoiceIntake(config);
   t.after(() => {
     intake.close(); source.close(); sessions.close();
@@ -61,6 +69,50 @@ test("new staff text is answered once and only to its verified sender", async (t
   assert.equal(f.calls.length, 1); assert.equal(f.sends.length, 1);
   assert.equal(f.sends[0].recipient, "919123456781");
   assert.equal(f.intake.chat.messages()[0].status, "sent");
+});
+test("a verified engineer receives all project stock once in WhatsApp, including zero and unknown; the next question reads a CSV edit",async t=>{
+  const f=fixture(t,{knowledge:true}),row=f.insert({content:"Show all stock at my site"});
+  await f.intake.chat.tick();f.insert({...row});await f.intake.chat.tick();
+  assert.equal(f.calls.length,0);assert.equal(f.sends.length,1);
+  const msg=f.sends[0];assert.equal(msg.recipient,"919123456781");
+  for(const s of ["North Site","3 items","MAT001 Cement PPC: 0 bag","MAT002 Brushbond RFX Coating: 12 pack","MAT003 TMT Bar 16mm: unknown","2026-11-21 10:00","stock.csv"])assert.ok(msg.message.includes(s),s);
+  assert.doesNotMatch(msg.message,/South Site|778|11:00/);
+  f.insert({content:"Is PPC cement in stock?"});await f.intake.chat.tick();assert.match(f.sends.at(-1).message,/Cement PPC: 0 bag/);
+  const file=path.join(f.config.dataDir,"stock.csv");fs.writeFileSync(file,fs.readFileSync(file,"utf8").replace("12,pack,2026-11-21 10:00","15,pack,2026-11-21 12:00"));
+  f.insert({content:"We need 36 packs. How much Brushbond stock is available?"});await f.intake.chat.tick();
+  assert.match(f.sends.at(-1).message,/15 pack/);assert.match(f.sends.at(-1).message,/shortfall 21 pack/);
+  assert.match(f.sends.at(-1).message,/12:00/);
+  f.insert({content:"Tell me stock at South Site"});await f.intake.chat.tick();
+  assert.match(f.sends.at(-1).message,/only for your assigned/);assert.doesNotMatch(f.sends.at(-1).message,/778/);
+  assert.equal(f.calls.length,0);assert.equal(f.intake.chat.status().procurementData.stock,"stock.csv");
+});
+test("a transcribed inventory question uses the same direct reply path, and a missing file is not zero",async t=>{
+  const f=fixture(t,{knowledge:true});
+  f.insert({content:"So let me know about the material cement PPC."});await f.intake.chat.tick();
+  assert.match(f.sends[0].message,/50 kg/);
+  const row=f.insert({id:"voice-stock",media_type:"audio",content:""});
+  f.intake.db.prepare(`INSERT INTO voice_notes(id,message_id,chat_jid,user_id,name,role,project_id,phone,language,received_at,created_at,updated_at,status,model,expected_sha,transcript)
+    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run("voice-stock-note",row.id,row.chat_jid,"S1","Site User","site_engineer","P1","+919123456781","en-IN",row.timestamp,row.timestamp,row.timestamp,"transcribed","saaras:v4","fixture","I want to know about the stock of it.");
+  await f.intake.chat.tick();assert.equal(f.calls.length,0);assert.match(f.sends.at(-1).message,/MAT001 Cement PPC: 0 bag/);
+  assert.doesNotMatch(f.sends.at(-1).message,/Brushbond|MAT003/);
+  assert.equal(f.intake.notes()[0].reply_status,"sent");
+  fs.unlinkSync(path.join(f.config.dataDir,"stock.csv"));
+  f.insert({content:"STOCK MAT001"});await f.intake.chat.tick();assert.match(f.sends.at(-1).message,/Cannot verify stock.csv/);
+  assert.doesNotMatch(f.sends.at(-1).message,/0 bag/);
+});
+test("free-form reasoning only receives projected current source rows and keeps evidence on a format retry",async t=>{
+  const f=fixture(t,{knowledge:true}),requests=[];
+  f.intake.chat.client=new DeepSeekClient({deepseekKey:"fake",fetcher:async(_url,o)=>{
+    requests.push(JSON.parse(o.body));return Response.json({choices:[{finish_reason:"stop",message:{content:requests.length===1?"{":"Please use the recorded quantities in stock.csv."}}]});
+  }});
+  f.insert({content:"Review stock and supplier performance for our next purchase"});await f.intake.chat.tick();
+  assert.equal(requests.length,2);
+  for(const req of requests){
+    const evidence=req.messages.find(m=>m.content.startsWith("PROCUREMENT_RECORDS"));assert.ok(evidence);
+    assert.match(evidence.content,/stock.csv/);assert.match(evidence.content,/MAT002",12,"pack"/);assert.match(evidence.content,/Steel Supplier/);
+    assert.doesNotMatch(evidence.content,/778|Road Two|supplier@example|919123|vendor_performance.csv/);
+    assert.equal(req.messages.at(-1).role,"user");
+  }
 });
 test("old chats, unknown senders, groups and the agent's own messages do not trigger AI", async (t) => {
   const f = fixture(t, { beforeStart: insert => insert({ timestamp: "2020-01-01T00:00:00Z" }) });

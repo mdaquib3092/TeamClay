@@ -3,6 +3,7 @@ import path from "node:path";
 import { createHash } from "node:crypto";
 import { loadUsers } from "./config.mjs";
 import { DeepSeekClient } from "./deepseek.mjs";
+import { ProcurementKnowledge } from "./procurement/knowledge.mjs";
 import { ProviderError, readJson } from "./sarvam.mjs";
 
 const timestamp = () => new Date().toISOString();
@@ -13,6 +14,7 @@ export class ConversationEngine {
   constructor(intake, { client, fetcher = fetch } = {}) {
     this.intake = intake; this.db = intake.db; this.config = intake.config;
     this.client = client || new DeepSeekClient(this.config);
+    this.knowledge=this.config.knowledgeRoot?new ProcurementKnowledge(this.config.knowledgeRoot):null;
     this.fetcher = fetcher; this.error = null;
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS chat_messages (
@@ -141,12 +143,15 @@ export class ConversationEngine {
     if (this.db.prepare("SELECT paused FROM chat_preferences WHERE user_id=?").get(user.user_id)?.paused) {
       this.update(message.id, { status: "paused" }); return true;
     }
-    if (this.intake.workflow && message.received_at >= this.intake.setting("case_flow_activated")) {
+    const workflowActive=this.intake.workflow && message.received_at >= this.intake.setting("case_flow_activated");
+    if (workflowActive || this.knowledge) {
       const source = this.intake.source.prepare("SELECT id,chat_jid,sender,is_from_me,media_type,content FROM messages WHERE id=? AND chat_jid=?").get(message.message_id,message.chat_jid);
       if (!source || this.intake.staffSender(source,users)?.user_id !== user.user_id ||
           (message.channel==="text" && (source.media_type || source.content?.trim() !== message.user_text))) {
         this.update(message.id,{status:"needs_review",error_code:"workflow_source_mismatch"}); return true;
       }
+    }
+    if(workflowActive){
       try {
         const reply=await this.intake.workflow.handle(message,user,users);
         if(reply!==null){this.update(message.id,{status:"ready",reply_kind:"workflow",assistant_reply:reply});return true;}
@@ -154,6 +159,16 @@ export class ConversationEngine {
         this.update(message.id,{status:"ready",reply_kind:"workflow",error_code:"case_workflow_error",
           assistant_reply:"The case service could not confirm that step. Check STATUS with your case ID before retrying."});return true;
       }
+    }
+    const history=this.history(message);
+    // The query result goes through the same logged, deduplicated, verified
+    // reply path as chat. No peer is notified and no live case is created.
+    let lookup;
+    if(this.knowledge && message.user_text.length<=16000){
+      const [prior,...earlier]=history.filter(t=>t.role==="user").map(t=>t.content).reverse();
+      try{lookup=this.knowledge.lookup(user,message.user_text,{users,prior,earlier});}
+      catch{lookup={reply:"I couldn't verify the current procurement files for your project. Please check the source and try again."};}
+      if(lookup?.reply){this.update(message.id,{status:"ready",reply_kind:"data",assistant_reply:lookup.reply,intent:"data_lookup",error_code:null});return true;}
     }
     const calls = this.db.prepare(`SELECT COUNT(*) AS value FROM chat_messages WHERE user_id=? AND generated_at>=?`)
       .get(user.user_id, new Date(Date.now() - 60000).toISOString()).value;
@@ -166,7 +181,7 @@ export class ConversationEngine {
     }
     this.update(message.id, { status: "generating", generated_at: timestamp(), model: this.config.chatModel });
     try {
-      const result = await this.client.reply(user, message.user_text, this.history(message));
+      const result = await this.client.reply(user, message.user_text, history,lookup?.evidence);
       this.update(message.id, { status: "ready", assistant_reply: result.reply,
         intent: result.intent, case_reference: result.case_reference,
         model: result.model, response_model: result.response_model,
@@ -174,8 +189,8 @@ export class ConversationEngine {
     } catch (error) {
       this.update(message.id, { status: "ready", reply_kind: "fallback",
         error_code: error instanceof ProviderError ? error.code : "ai_reply_failed",
-        assistant_reply: "Your message has been saved, but the AI service is temporarily unavailable. " +
-          "Please try again later. No procurement action has been executed." });
+        assistant_reply: lookup?.evidence ? "I couldn't complete that analysis. Send STOCK (all project stock), STOCK plus a material name or code, or DATA for the other direct lookups." :
+          "Your message has been saved, but the AI service is temporarily unavailable. Please try again later. No procurement action has been executed." });
     }
     return true;
   }
@@ -242,6 +257,7 @@ export class ConversationEngine {
   status() {
     return { enabled: true, provider: "DeepSeek", model: this.config.chatModel,
       requestedVersion: "DeepSeek-V4.1-Flash-1017", automaticReplies: this.config.autoReplies,
+      procurementData:this.knowledge?{stock:"stock.csv",freshReadPerQuestion:true,scope:"assigned_projects"}:null,
       commercialActionsEnabled: !!this.intake.workflow, activatedAt: this.intake.setting("chat_activated_at"),
       error: this.error,
       counts: Object.fromEntries(this.db.prepare("SELECT status,COUNT(*) AS count FROM chat_messages GROUP BY status")
