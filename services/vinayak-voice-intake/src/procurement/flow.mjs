@@ -3,12 +3,15 @@ import path from "node:path";
 import { createHash } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
 import { CaseInputError, check, HELP, SAMPLE, bindRun, captureScope, catalogVendors, formatMoney, linesForQuote, parseTerms, renderRfq, scopeSummary } from "./boq.mjs";
-import { ROLE_POLICY } from "../roles.mjs";
+import { ROLE_POLICY,rfqMinimum } from "../roles.mjs";
 import { VendorDataError, vendorDirectory, availablePerformance, vendorSourceStatus } from "./vendor-data.mjs";
 import { sourceReview, comparable, deliveryWindow } from "./quote-evidence.mjs";
 import { fieldRuns, findRun, runFields, runCommand } from "./field-runs.mjs";
 import { MasterDataError } from "./master-data.mjs";
 import { SiteIntake } from "./site-intake.mjs";
+import { PmDispatch,receiptText } from "./pm-dispatch.mjs";
+import { vendorQuestion,vendorHelpBody } from "./vendor-help.mjs";
+import { authoredReply } from "./quote-terms.mjs";
 
 const schema = fs.readFileSync(new URL("./schema.sql", import.meta.url), "utf8");
 const hash = s => createHash("sha256").update(s).digest("hex").slice(0, 12).toUpperCase();
@@ -16,7 +19,7 @@ const now = () => new Date().toISOString();
 const rfq = c => `RFQ-${c.id.slice(5)}-B${c.boq_rev}`;
 const scopeOK = (user, c) => user?.project_id === c.project_id || (user?.role === "hod" && user.project_id === "ALL");
 const member = (users, id) => [...users.values()].find(u => u.user_id === id);
-const minimum = c => c.demo ? 2 : ROLE_POLICY.controls.minimumEligibleRfqVendors;
+const minimum = c => rfqMinimum(c.project_id,c.demo);
 const allowed = (u, c) => scopeOK(u, c) && ((u.role === "site_engineer" && u.user_id === c.owner_id) ||
   (u.role === "project_manager" && u.user_id === c.pm_id) || (u.role === "hod" && u.user_id === c.hod_id));
 const commands = /^(?:(?:DEMO\s+)?RFQ(?:\s*\||\s+(?:HELP|RUN)\b|$)|(?:ANALYSIS|ANALYSE|ANALYZE|PREVIEW|REVIEWLINK|SEND|STATUS|RECOMMEND|APPROVE|RETURN|CORRECT)\s+CASE-)/i;
@@ -37,6 +40,7 @@ export class CaseFlow {
     this.db.exec("PRAGMA foreign_keys=ON; PRAGMA busy_timeout=5000;");
     this.db.exec(schema);
     this.siteIntake=new SiteIntake(this);
+    this.pmDispatch=new PmDispatch(this);
     if (recoverOutbox) this.db.exec("UPDATE wa_flow_outbox SET state='unconfirmed',error='interrupted; inspect provider before retrying' WHERE state='sending'");
     this.lastError = null;
   }
@@ -92,17 +96,27 @@ export class CaseFlow {
     }
     return { c, reply: `${caseLabel(c)}${id} created. ${scopeSummary(c)}\n${stockOnly ? "Fully covered by the stock snapshot; no RFQ needed." : "BOQ sent to the project manager’s review queue."}` };
   }
+  dispatchVendors(c,ids) {
+    check(c.stage==="BOQ_REVIEW","Dispatch is not pending for this case.");
+    check(new Date(Date.now() + 19800000).toISOString().slice(0, 10) <= c.scope.deadline, "The quotation deadline has passed; correct the dates.");
+    const candidates=vendorDirectory(this.root).filter(v=>v.segments.includes(c.scope.segment));
+    check(ids.length >= minimum(c) && ids.length === new Set(ids).size, `Select at least ${minimum(c)} distinct eligible ${c.scope.segment} vendors.`);
+    return ids.map(id => {
+      const v = c.scope.vendors.find(x => x.id === id), current = candidates.find(x => x.id === id);
+      check(v && current?.email === v.email && current?.name === v.name, "Recipient not in the reviewed segment roster, or contact changed. Review a fresh BOQ.");
+      check(!c.scope.drafts?.[id]||c.scope.drafts[id].to===v.email,"The saved RFQ draft no longer matches the invited address.");
+      return current;
+    });
+  }
+  readiness(c){
+    try{const selected=this.dispatchVendors(c,c.scope.vendors.map(v=>v.id));return {ready:true,minimum:minimum(c),count:selected.length};}
+    catch(e){if(!(e instanceof CaseInputError||e instanceof VendorDataError))throw e;
+      return {ready:false,minimum:minimum(c),count:c.scope.vendors.length,reason:e.message};}
+  }
   dispatch(c, user, words, route = "whatsapp") {
     check(user.role === "project_manager" && allowed(user,c), "Only the assigned project manager confirms vendor eligibility and dispatch.");
     check(c.stage === "BOQ_REVIEW" && words[0] === `B${c.boq_rev}`, "BOQ is not awaiting this revision’s dispatch.");
-    check(new Date(Date.now() + 19800000).toISOString().slice(0, 10) <= c.scope.deadline, "The quotation deadline has passed; correct the dates.");
-    const ids = words.slice(1), candidates = vendorDirectory(this.root).filter(v => v.segments.includes(c.scope.segment));
-    check(ids.length >= minimum(c) && ids.length === new Set(ids).size, `Select at least ${minimum(c)} distinct eligible ${c.scope.segment} vendors.`);
-    const selected = ids.map(id => {
-      const v = c.scope.vendors.find(x => x.id === id), current = candidates.find(x => x.id === id);
-      check(v && current?.email === v.email && current?.name === v.name, "Recipient not in the reviewed segment roster, or contact changed. Review a fresh BOQ.");
-      return current;
-    });
+    const ids=words.slice(1),selected=this.dispatchVendors(c,ids);
     this.run("INSERT INTO rfqs(rfq_id,requirement_id,created_at,status) VALUES(?,?,?,'DISPATCHING')", rfq(c), c.id, now());
     for (const v of selected) {
       // An owner may add a vendor to the CSV without reseeding the business DB.
@@ -114,8 +128,9 @@ export class CaseFlow {
       this.enqueue(c, `email:${v.id}:B${c.boq_rev}`, "email", v.id, null, c.scope.drafts?.[v.id] || { to:v.email,...renderRfq(this.template,c,v,user) });
     }
     this.run("UPDATE wa_flow_cases SET stage='DISPATCHING' WHERE id=?", c.id);
+    this.run("DELETE FROM wa_pm_dispatch_offers WHERE case_id=?",c.id);
     this.run("INSERT INTO approvals(requirement_id,stage,user_id,status,note,decided_via,decided_at) VALUES(?,'pm',?,'APPROVED',?,?,?)",
-      c.id, user.user_id, `BOQ B${c.boq_rev}, ERP codes and eligibility checked: ${ids.join(", ")}`, route, now());
+      c.id, user.user_id, `BOQ B${c.boq_rev}, ERP codes and eligibility checked: ${ids.join(", ")}; invitation minimum ${minimum(c)}`, route, now());
     return `Confirmed ${c.id} B${c.boq_rev}. Queued ${selected.length} individual ${c.scope.runKey ? "workflow-run " : c.demo ? "DEMO " : ""}RFQ emails. I’ll report Gmail acceptance.`;
   }
   comparison(c) {
@@ -131,12 +146,13 @@ export class CaseFlow {
   }
   async handle(msg, user, users, prior=[]) {
     const raw = msg.user_text.trim();
-    if (!commands.test(raw) && !/^\/(?:rfq|procurement)(?:\s+help)?$/i.test(raw)) return this.siteIntake.handle(msg,user,users,prior);
-    const previous = this.one("SELECT reply FROM wa_flow_commands WHERE id=?", msg.id);
+    if (!commands.test(raw) && !/^\/(?:rfq|procurement)(?:\s+help)?$/i.test(raw)) return user.role==="project_manager"?this.pmDispatch.handle(msg,user,users):this.siteIntake.handle(msg,user,users,prior);
+    const previous = this.one("SELECT reply FROM wa_flow_commands WHERE id=? AND actor=?", msg.id,user.user_id);
     if (previous) return previous.reply;
     const parts = raw.split("|").map(s => s.trim()), [verb, id, ...words] = parts[0].toUpperCase().split(/\s+/);
     try {
-      if (/^(?:RFQ(?: HELP)?|DEMO RFQ HELP|\/(?:rfq|procurement)(?: help)?)$/i.test(raw)) return HELP;
+      if (/^(?:RFQ(?: HELP)?|DEMO RFQ HELP|\/(?:rfq|procurement)(?: help)?)$/i.test(raw))
+        return user.role==="project_manager"?`${user.name.split(/\s+/)[0]}, ask “Help me send the RFQ” to review your pending BOQ and recipients. You approve the vendor emails from your private link or by typing “Yes send it” after the dispatch prompt. Ask “receipts” with the case ID to check Gmail status.`:HELP;
       const named=/^RFQ\s+RUN\b/i.test(parts[0]),run=named&&findRun(/^RFQ\s+RUN\s+(\w+)$/i.exec(parts[0])?.[1]?.toLowerCase());
       check(!named||run,"Choose RFQ RUN STEEL or RFQ RUN WATERPROOFING.");
       const isNew = named || /^(?:DEMO )?RFQ$/i.test(parts[0]);
@@ -259,9 +275,21 @@ export class CaseFlow {
       })();
   }
   ingest(inv, mail) {
-    if (mail.threadId !== inv.thread_id || !mail.id || this.one("SELECT 1 FROM wa_flow_replies WHERE gmail_id=?",mail.id)) return;
+    if (mail.threadId !== inv.thread_id || !mail.id || this.one("SELECT 1 FROM wa_flow_replies WHERE gmail_id=? UNION ALL SELECT 1 FROM wa_flow_vendor_questions WHERE gmail_id=?",mail.id,mail.id)) return;
     this.tx(() => {
       let c = this.get(inv.case_id);
+      const question=vendorQuestion(mail.text||"");
+      if(question){
+        this.run("INSERT INTO wa_flow_vendor_questions VALUES(?,?,?,?,?,?)",mail.id,c.id,inv.vendor_id,mail.received,mail.text,question);
+        this.event(c,"email","inbound",inv.vendor_id,"agent",{action:"vendor_question",gmailId:mail.id,threadId:inv.thread_id,kind:question},"received");
+        const n=this.one("SELECT COUNT(*) n FROM wa_flow_outbox WHERE case_id=? AND kind='vendor_help' AND target=?",c.id,inv.vendor_id).n;
+        if(question==="format"&&n<3&&c.stage!=="APPROVED"){
+          this.enqueue(c,`help:${inv.vendor_id}:${mail.id}`,"vendor_help",inv.vendor_id,null,{to:inv.email,source:mail.id,text:vendorHelpBody(c,inv)});
+        }else{
+          this.notify(c,`vendor-question:${mail.id}`,"project_manager",`${inv.vendor_id} ${inv.vendor_name} asks in its RFQ email:\n“${clip(authoredReply(mail.text),500)}”\nReply in this vendor’s procurement Gmail thread: https://mail.google.com/mail/u/0/#all/${inv.thread_id}\nThis is a question, not a quotation.`);
+        }
+        return;
+      }
       const terms = parseTerms(mail.text || "", linesForQuote(c));
       this.run("INSERT INTO wa_flow_replies VALUES(?,?,?,?,?,?)", mail.id, c.id, inv.vendor_id, mail.received, JSON.stringify(terms), mail.text || "");
       this.event(c,"email","inbound",inv.vendor_id,"agent",{rfq:inv.rfq_id,gmailId:mail.id,threadId:inv.thread_id,terms}, "received");
@@ -335,7 +363,7 @@ export class CaseFlow {
         (ready?"\nFor information. The PM recommendation is required before approval.":"\nClarification pending; no decision requested."),c.quote_rev);
   }
   async refresh(inv) {
-    const seen=new Set(this.all("SELECT gmail_id FROM wa_flow_replies WHERE case_id=? AND vendor_id=?",inv.case_id,inv.vendor_id).map(x=>x.gmail_id));
+    const seen=new Set(this.all("SELECT gmail_id FROM wa_flow_replies WHERE case_id=? AND vendor_id=? UNION ALL SELECT gmail_id FROM wa_flow_vendor_questions WHERE case_id=? AND vendor_id=?",inv.case_id,inv.vendor_id,inv.case_id,inv.vendor_id).map(x=>x.gmail_id));
     try{
       for(const reply of await this.mailbox.replies(inv,seen))this.ingest(inv,reply);
       this.run("UPDATE wa_flow_mail SET poll_after=?,poll_error=NULL WHERE thread_id=?",Date.now()+15000,inv.thread_id);
@@ -345,7 +373,7 @@ export class CaseFlow {
     for(const inv of this.all("SELECT * FROM wa_flow_mail WHERE case_id=? AND thread_id IS NOT NULL",id))await this.refresh(inv);
   }
   async deliver(users,whatsappReady=true) {
-    const o=this.one("SELECT * FROM wa_flow_outbox WHERE state='queued' AND (? OR kind='email') ORDER BY rowid LIMIT 1",+whatsappReady);if(!o)return;
+    const o=this.one("SELECT * FROM wa_flow_outbox WHERE state='queued' AND (? OR kind IN ('email','vendor_help')) ORDER BY rowid LIMIT 1",+whatsappReady);if(!o)return;
     const c=this.get(o.case_id), p=JSON.parse(o.payload);
     if(o.boq_rev!==c.boq_rev||(o.quote_rev!==null&&o.quote_rev!==c.quote_rev)||(o.required_stage&&o.required_stage!==c.stage)){
       this.run("UPDATE wa_flow_outbox SET state='superseded' WHERE id=?",o.id);return;
@@ -354,12 +382,20 @@ export class CaseFlow {
     if(o.kind==="whatsapp"&&(!recipient||recipient.role!==o.role||!allowed(recipient,c)||this.pauseCheck(o.target))){
       this.run("UPDATE wa_flow_outbox SET state='held',error='staff_scope_or_paused' WHERE id=?",o.id);return;
     }
-    if(o.kind==="email"&&!catalogVendors(this.root,c.scope.segment).some(v=>v.id===o.target&&v.email===p.to)){
-      this.run("UPDATE wa_flow_outbox SET state='held',error='vendor_contact_changed' WHERE id=?",o.id);return;
+    const vendorEmail=["email","vendor_help"].includes(o.kind);
+    let contactCurrent=true;
+    if(vendorEmail)try{contactCurrent=catalogVendors(this.root,c.scope.segment).some(v=>v.id===o.target&&v.email===p.to&&v.name===c.scope.vendors.find(x=>x.id===o.target)?.name);}
+    catch(e){if(!(e instanceof VendorDataError))throw e;contactCurrent=false;}
+    if(!contactCurrent){
+      this.tx(()=>{this.run("UPDATE wa_flow_outbox SET state='held',error='vendor_contact_changed' WHERE id=?",o.id);
+        this.notify(c,`held:${o.id}`,"project_manager",`${o.target}: ${o.kind==="email"?"RFQ":"format reply"} held because the reviewed vendor contact could not be verified. Check the roster and Gmail Sent.`);});return;
     }
     if(!this.run("UPDATE wa_flow_outbox SET state='sending',attempted=? WHERE id=? AND state='queued'",now(),o.id).changes)return;
     try{
       let text=p.text;
+      const review=o.kind==="whatsapp"&&o.role==="project_manager"&&o.required_stage==="BOQ_REVIEW";
+      const canOffer=review&&this.readiness(c).ready;
+      if(review&&canOffer&&!o.id.includes(":dispatch-guide:"))text+=`\n${recipient.name.split(/\s+/)[0]}, after checking the drafts, type “Yes send it” to email all ${c.scope.vendors.length} listed vendors. You approve this RFQ dispatch; the HOD reviews quotations later.`;
       if(this.pmLinks&&o.kind==="whatsapp"&&o.role==="project_manager"&&o.required_stage==="BOQ_REVIEW"){
         const token=this.pmLinks.issue(c.id,c.boq_rev,recipient);
         text+=`\n\nReview and approve on the dashboard:\nhttps://clay-procurement.teamclay-d326e1.workers.dev/pm/${c.id}/#review=${token}\nThis link is for you. Tap it to review the drafts; opening it does not send an RFQ.`;
@@ -368,12 +404,23 @@ export class CaseFlow {
         const grant=this.hodLinks.issue(c.id,c.quote_rev,recipient);
         text+=`\n\nOpen both vendor quotes, source replies and your HOD notes:\nhttps://clay-procurement.teamclay-d326e1.workers.dev/hod/${c.id}/#analysis=${grant}\nPrivate to you; no login or code required.`;
       }
-      const receipt=o.kind==="email"?await this.mailbox.send(p):await this.sendStaff(recipient,text);
-      if(o.kind==="email"&&(!receipt?.sent||!receipt.threadId||!receipt.messageId))throw new Error("unconfirmed Gmail send");
+      let receipt;
+      if(o.kind==="email")receipt=await this.mailbox.send(p);
+      else if(o.kind==="vendor_help"){
+        const inv=this.one(`SELECT m.* FROM wa_flow_mail m JOIN wa_flow_vendor_questions q USING(case_id,vendor_id)
+          WHERE m.case_id=? AND m.vendor_id=? AND m.email=? AND q.gmail_id=? AND q.kind='format' AND m.gmail_id IS NOT NULL`,c.id,o.target,p.to,p.source);
+        if(!inv)throw Error("Supplier question is no longer linked.");
+        receipt=await this.mailbox.help(inv,p.source,text);
+        if(receipt?.threadId!==inv.thread_id)throw Error("Supplier reply not confirmed in the original thread.");
+      }else receipt=await this.sendStaff(recipient,text);
+      if(vendorEmail&&(!receipt?.sent||!receipt.threadId||!receipt.messageId))throw new Error("unconfirmed Gmail send");
+      if(o.kind==="whatsapp"&&!receipt?.accepted)throw new Error("unconfirmed WhatsApp message");
       this.tx(()=>{
-        this.run("UPDATE wa_flow_outbox SET state='accepted',accepted=?,receipt=? WHERE id=?",now(),JSON.stringify(receipt),o.id);
+        const at=now();
+        this.run("UPDATE wa_flow_outbox SET state='accepted',accepted=?,receipt=? WHERE id=?",at,JSON.stringify(receipt),o.id);
+        if(o.kind==="whatsapp"&&o.role==="project_manager")this.pmDispatch.accepted(c,recipient,o.id,!!canOffer,at);
         // p.text is the audit copy; it never contains the private URL fragment.
-        this.event(c,o.kind,"outbound","agent",o.target,{outbox:o.id,body:p.text,subject:p.subject,receipt},"accepted");
+        this.event(c,vendorEmail?"email":o.kind,"outbound","agent",o.target,{outbox:o.id,body:p.text,subject:p.subject,receipt},"accepted");
         if(o.kind==="email"){
           this.run("UPDATE wa_flow_mail SET gmail_id=?,thread_id=? WHERE case_id=? AND vendor_id=?",receipt.messageId,receipt.threadId,c.id,o.target);
           this.run("UPDATE rfq_recipients SET sent_at=? WHERE rfq_id=? AND vendor_id=?",now(),rfq(c),o.target);
@@ -381,14 +428,14 @@ export class CaseFlow {
             this.run("UPDATE wa_flow_cases SET stage='AWAITING_QUOTES' WHERE id=?",c.id);
             this.run("UPDATE requirements SET status='RFQ_SENT' WHERE requirement_id=?",c.id);
             this.run("UPDATE rfqs SET status='RFQ_SENT' WHERE rfq_id=?",rfq(c));
-            this.notify(c,"dispatch-accepted","project_manager",`Gmail accepted the individual RFQs. Watching their reply threads.`);
+             this.notify(c,"dispatch-accepted","project_manager",`${receiptText(this,c)}\nWatching each vendor’s own reply thread.`);
             if(c.quote_rev>0)this.publishComparison(this.get(c.id));
           }
         }
       });
     }catch{
       this.tx(()=>{this.run("UPDATE wa_flow_outbox SET state='unconfirmed',error='verify_provider_no_auto_resend' WHERE id=?",o.id);
-        if(o.kind==="email")this.notify(c,`uncertain:${o.id}`,"project_manager",`Could not confirm Gmail acceptance for ${o.target}. Inspect Sent before retrying.`);});
+        if(vendorEmail)this.notify(c,`uncertain:${o.id}`,"project_manager",`Could not confirm Gmail acceptance of the ${o.kind==="vendor_help"?"format reply":"RFQ"} for ${o.target}. Inspect Sent before retrying.`);});
     }
   }
   async tick(users,whatsappReady=true) {
@@ -401,7 +448,7 @@ export class CaseFlow {
     }catch{this.lastError="case_transport_needs_attention";}
   }
   summary() {
-    return {enabled:true,guidedSiteIntake:true,standardMinimum:ROLE_POLICY.controls.minimumEligibleRfqVendors,demoMinimum:2,
+    return {enabled:true,guidedSiteIntake:true,guidedPmDispatch:true,standardMinimum:ROLE_POLICY.controls.minimumEligibleRfqVendors,projectMinimums:ROLE_POLICY.controls.minimumEligibleRfqVendorsByProject,demoMinimum:2,
       error:this.lastError,sample:SAMPLE,runCommands:fieldRuns.map(runCommand),vendorSources:vendorSourceStatus(this.root),cases:this.all("SELECT id,demo,project_id,stage,boq_rev,quote_rev FROM wa_flow_cases ORDER BY created DESC LIMIT 30"),
       outbox:this.all("SELECT state,COUNT(*) n FROM wa_flow_outbox GROUP BY state")};
   }

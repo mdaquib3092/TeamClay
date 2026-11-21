@@ -1,5 +1,6 @@
 import {createHash,createHmac,randomBytes} from "node:crypto";
 import {renderRfq,scopeSummary} from "../procurement/boq.mjs";
+import {dispatchReceipts} from "../procurement/pm-dispatch.mjs";
 const digest=v=>createHash("sha256").update(v).digest("hex");
 const key=()=>randomBytes(32).toString("hex");
 const hour=3_600_000;
@@ -59,14 +60,15 @@ export class PmApproval {
   view(id,token){
     const {c,u,r}=this.authorised(id,token);
     const drafts=c.scope.vendors.map(v=>({id:v.id,name:v.name,...(c.scope.drafts?.[v.id]||{to:v.email,...renderRfq(this.flow.template,c,v,u)})}));
-    const snap=digest(JSON.stringify([c.id,c.boq_rev,c.scope,drafts]));
+    const gate=this.flow.readiness(c);
+    const snap=digest(JSON.stringify([c.id,c.boq_rev,c.scope,drafts,gate.minimum]));
     // A case already under PM review may predate the convenience flag. Read
     // its audit record without changing the signed scope or reissuing a link.
     const guided=c.scope.intakeMode==="guided"||this.flow.one("SELECT 1 FROM messages WHERE requirement_id=? AND channel='whatsapp' AND direction='inbound' AND json_valid(body) AND json_extract(body,'$.action')='submit_guided_requirement' LIMIT 1",id);
     const original=guided?this.flow.one("SELECT raw_message FROM requirements WHERE requirement_id=?",id)?.raw_message:null;
     this.flow.run("UPDATE wa_pm_review_links SET reviewed=? WHERE id=?",snap,r.id);
     return {id,revision:c.boq_rev,snapshot:snap,stage:c.stage,project:c.scope.project,site:c.scope.site,needed:c.scope.needBy,deadline:c.scope.deadline,
-      boq:scopeSummary(c)+(original?`\n\nSite engineer’s original request and answers:\n${original}`:""),pm:u.name,demo:!!c.demo,runKey:c.scope.runKey||null,drafts,receipts:this.flow.all("SELECT target,state,accepted FROM wa_flow_outbox WHERE case_id=? AND kind='email' ORDER BY target",id)};
+      boq:scopeSummary(c)+(original?`\n\nSite engineer’s original request and answers:\n${original}`:""),pm:u.name,demo:!!c.demo,runKey:c.scope.runKey||null,drafts,gate,receipts:dispatchReceipts(this.flow,c)};
   }
   approve(id,token,body){
     return this.flow.tx(()=>{
@@ -74,7 +76,9 @@ export class PmApproval {
       need(!r.consumed&&c.stage==="BOQ_REVIEW",409,"This dispatch is already confirmed or no longer pending. Refresh for receipts.");
       need(body.confirm===true&&body.revision===c.boq_rev&&r.reviewed&&r.reviewed===body.snapshot,409,"Read the current BOQ and RFQ drafts before confirming.");
       const state=this.view(id,token);need(state.snapshot===r.reviewed,409,"The RFQ changed; review the current drafts.");
-      const ids=state.drafts.map(v=>v.id);
+      need(state.gate.ready,409,state.gate.reason||"This RFQ is not ready for dispatch.");
+      const ids=body.vendorIds===undefined?state.drafts.map(v=>v.id):body.vendorIds;
+      need(Array.isArray(ids)&&ids.length<=state.drafts.length&&ids.every(id=>state.drafts.some(v=>v.id===id)),400,"Choose recipients from the reviewed RFQ drafts.");
       const result=this.flow.dispatch(c,u,[`B${c.boq_rev}`,...ids],"web");
       this.flow.event(c,"web","inbound",u.user_id,"agent",{action:"confirm_rfq_dispatch",revision:c.boq_rev,vendors:ids,snapshot:state.snapshot,identity:"assigned_pm_private_whatsapp_link"},"recorded");
       this.flow.run("UPDATE wa_pm_review_links SET consumed=? WHERE id=?",Date.now(),r.id);

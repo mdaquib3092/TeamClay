@@ -1,6 +1,6 @@
 import { catalogVendors, VendorDataError, vendorSourceStatus } from "./vendor-data.mjs";
 import { SAMPLE } from "./boq.mjs";
-import { ROLE_POLICY } from "../roles.mjs";
+import { ROLE_POLICY,rfqMinimum } from "../roles.mjs";
 import { samples } from "./samples.mjs";
 import { comparable } from "./quote-evidence.mjs";
 
@@ -23,10 +23,10 @@ export function caseDetails(flow, c) {
     ORDER BY id DESC LIMIT 40`,c.id).reverse();
   return {
     id:c.id, demo:!!c.demo, runKey:c.scope.runKey||null,created:c.created, stage:c.stage, project:c.scope.project, site:c.scope.site, segment:c.scope.segment,
-    neededBy:c.scope.needBy, deadline:c.scope.deadline, boqRev:c.boq_rev, quoteRev:c.quote_rev,
+    neededBy:c.scope.needBy, deadline:c.scope.deadline, boqRev:c.boq_rev, quoteRev:c.quote_rev,minimumInvites:rfqMinimum(c.project_id,c.demo),
     owner:c.owner_id, pm:c.pm_id, hod:c.hod_id, selected:c.selected, rationale:c.rationale, lines:c.scope.lines,
     submission:flow.one("SELECT raw_message FROM requirements WHERE requirement_id=?",c.id)?.raw_message,
-    review:flow.one("SELECT json_extract(payload,'$.text') text FROM wa_flow_outbox WHERE id=?",`${c.id}:review:B${c.boq_rev}`)?.text || null,
+    review:c.stage==="BOQ_REVIEW"?flow.review(c):flow.one("SELECT json_extract(payload,'$.text') text FROM wa_flow_outbox WHERE id=?",`${c.id}:review:B${c.boq_rev}`)?.text || null,
     vendors:recipients.map(v => {
       const m = mail.find(x => x.vendor_id === v.id), q = snapshot.find(x => x.id === v.id);
       return { id:v.id,name:v.name,email:v.email,delivery:m?.state || "not_sent",accepted:m?.accepted || null,

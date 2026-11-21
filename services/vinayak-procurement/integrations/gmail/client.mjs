@@ -54,9 +54,11 @@ function messageInput(message) {
   return { to, subject: message.subject, text: message.text };
 }
 
-export function buildRawMessage(message, from) {
+export function buildRawMessage(message, from, thread) {
   const input = messageInput(message);
   const sender = emailAddress(from);
+  if(thread&&(typeof thread.id!=="string"||!/^[\w-]{1,128}$/.test(thread.id)||typeof thread.parent!=="string"||/[\r\n]/.test(thread.parent)||
+    !/^<[^<>\s@\x00-\x1F\x7F]{1,200}@[^<>\s@\x00-\x1F\x7F]{1,150}>$/.test(thread.parent)))throw new GmailError("invalid_thread","Cannot verify the message to reply to.");
   const parts = [];
   let part = "";
   for (const character of input.subject) {
@@ -69,6 +71,7 @@ export function buildRawMessage(message, from) {
   const raw = [
     `From: ${sender}`, `To: ${input.to}`, `Subject: ${subject}`,
     `Message-ID: <${randomUUID()}@vinayak-procurement.local>`,
+    ...(thread?[`In-Reply-To: ${thread.parent}`,`References: ${thread.parent}`,"Auto-Submitted: auto-replied"]:[]),
     "MIME-Version: 1.0", 'Content-Type: text/plain; charset="UTF-8"',
     "Content-Transfer-Encoding: base64", "", body, "",
   ].join("\r\n");
@@ -177,7 +180,7 @@ export class GmailClient {
     return { email: state.email };
   }
 
-  async send(message, { confirmed = false } = {}) {
+  async send(message, { confirmed = false, thread } = {}) {
     const input = messageInput(message);
     // Preview by default: no token access, network calls or persistent enabling.
     if (!confirmed) return { mode: "preview", sent: false, ...input };
@@ -186,10 +189,10 @@ export class GmailClient {
     const result = await googleJson(`${GMAIL_URL}messages/send`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ raw: buildRawMessage(input, email) }),
+      body: JSON.stringify({ raw: buildRawMessage(input, email,thread),...(thread?{threadId:thread.id}:{}) }),
     }, this.fetchImpl);
     if (typeof result?.id !== "string" || typeof result?.threadId !== "string" ||
-        !/^[A-Za-z0-9_-]{1,128}$/.test(result.id) || !result.threadId) {
+        !/^[A-Za-z0-9_-]{1,128}$/.test(result.id) || !result.threadId || thread&&result.threadId!==thread.id) {
       throw new GmailError("uncertain_delivery", "Gmail did not confirm message identifiers. Check the Sent folder before retrying.");
     }
     return {

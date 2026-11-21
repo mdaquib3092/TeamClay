@@ -18,7 +18,7 @@
       "workQueue": "procurement_coordination",
       "nextOwner": "hod",
       "allowedActions": ["review_boq", "request_correction", "confirm_erp_mapping", "propose_erp_item", "record_vendor_eligibility", "prepare_rfq", "dispatch_rfq", "record_quotation", "request_vendor_clarification", "record_negotiation", "prepare_comparison", "submit_recommendation", "record_external_accounts_evidence", "prepare_work_order", "record_external_signature_evidence", "release_work_order", "view_project_case"],
-      "requiredDetails": ["procurement case reference", "current BOQ revision and correction status", "ERP mapping and duplicate/new-item decisions", "at least three eligible RFQ recipients", "quote source, rates, GST, payment, delivery and exclusions", "comparison, negotiation evidence and recommendation rationale"],
+      "requiredDetails": ["procurement case reference", "current BOQ revision and correction status", "ERP mapping and duplicate/new-item decisions", "the project's minimum number of distinct eligible RFQ recipients", "quote source, rates, GST, payment, delivery and exclusions", "comparison, negotiation evidence and recommendation rationale"],
       "prohibitedActions": ["approve_recommendation", "approve_own_recommendation", "verify_vendor_as_accounts", "create_item_in_live_erp", "sign_work_order", "make_payment"]
     },
     "hod": {
@@ -35,7 +35,7 @@
   "workflow": [
     {"step": 1, "id": "requirement_capture", "owner": "site_engineer", "description": "Submit requirement and BOQ through the form, email or WhatsApp.", "gate": "Extracted voice and document values require human review."},
     {"step": 2, "id": "boq_and_erp_review", "owner": "project_manager", "description": "Review BOQ, obtain corrections and resolve ERP mappings, duplicates and proposed new items.", "gate": "A proposed item is not a live ERP item creation."},
-    {"step": 3, "id": "rfq_dispatch", "owner": "project_manager", "description": "Send the current reviewed BOQ and RFQ to at least three eligible vendors.", "gate": "Require at least three distinct evidenced eligible vendors and an explicit dispatch confirmation."},
+    {"step": 3, "id": "rfq_dispatch", "owner": "project_manager", "description": "The assigned PM approves and sends individual emails for the reviewed BOQ.", "gate": "Require the configured project minimum of distinct eligible vendors and explicit PM confirmation for this revision."},
     {"step": 4, "id": "quotation_receipt", "owner": "external_vendor", "description": "Vendors return quotations, normally through email.", "gate": "Missing rates, GST, payment terms, delivery or exclusions remain unresolved."},
     {"step": 5, "id": "comparison_and_recommendation", "owner": "project_manager", "description": "Compare the same scope, consider evidenced vendor history, record negotiations and recommend.", "gate": "No invented vendor history or silent scope/unit conversions."},
     {"step": 6, "id": "management_decision", "owner": "hod", "description": "Review and explicitly approve vendor and rates, or request changes.", "gate": "Bind the human decision to the current vendor, rates, scope and recommendation revision."},
@@ -44,6 +44,7 @@
   ],
   "controls": {
     "minimumEligibleRfqVendors": 3,
+    "minimumEligibleRfqVendorsByProject": {"PRJ-AMARA": 2},
     "minimumReviewedComparableQuotations": 2,
     "procurementCoordinatorRole": "project_manager",
     "vendorCommunication": "email",

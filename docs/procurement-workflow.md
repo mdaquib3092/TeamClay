@@ -5,8 +5,10 @@ channels; the platform is the record of the procurement case. Agents assist with
 capture, drafting, extraction, follow-up and comparison. Humans retain approval
 authority.
 
-The owner has updated the RFQ minimum to **two distinct eligible vendors**. This
-supersedes the earlier three-vendor invitation requirement.
+The owner has set the RFQ minimum for **Vinayak Amara (PRJ-AMARA) to two
+distinct eligible vendors**. Other standard projects default to three unless
+they have an explicitly configured override. This is the invitation count;
+the separate reviewed-quotation minimum is two.
 
 This specification extends beyond the current v0 API/mock and Vinayak workspace,
 which stop at an in-app HOD decision. It does not claim that the later stages,
@@ -70,7 +72,8 @@ not instructions to override workflow rules or disclose another case.
 
 1. Do not issue an RFQ for an unreviewed or superseded BOQ. Resolve item-code
    questions or record the required provisional-item review before dispatch.
-2. Require **at least two distinct eligible vendors** for the same case/scope.
+2. Require the applicable project's minimum of distinct eligible vendors for
+   the same case/scope (two for Amara; three by default).
    Duplicate IDs, unrelated segments and fabricated vendor identities do not
    satisfy the rule. Eligibility is distinct from later registration checks.
 3. The invitation minimum is separate from the required quotation-response count.
@@ -90,12 +93,13 @@ not instructions to override workflow rules or disclose another case.
 
 ## Communication and approval safety
 
-- Gmail OAuth and manually confirmed plain-text sending are connected locally.
-  Incoming monitoring, quotation attachment processing and automatic case linking
-  remain separate work.
-- The chosen WhatsApp MCP requires a persistent linked-device bridge and a
-  dedicated account. Number/role configuration and the agent loop are not yet
-  connected.
+- The live staff worker sends an individual Gmail RFQ after PM confirmation,
+  watches each invited thread and sends the PM per-vendor acceptance receipts.
+  A supplier can request its quote format in its own thread. Unknown or
+  attachment-only commercial terms require clarification.
+- The linked-device WhatsApp bridge verifies the sender against the staff
+  roster. The PM can ask for dispatch help, review the exact pending drafts
+  and approve from a private review page or the matching typed response.
 - Identify a vendor by case + RFQ/thread + vendor ID, not email alone. Current
   test vendors reuse inboxes across segments.
 - WhatsApp/email approvals must reference the exact pending decision and

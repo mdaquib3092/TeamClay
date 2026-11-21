@@ -85,5 +85,5 @@ export function renderRfq(template, c, vendor, pm) {
   return { subject: prefix + match[1], text: (c.scope.runKey ? "Two-vendor workflow check. Please reply with quotation terms for this exercise; do not supply goods.\n\n" : c.demo ? "Test RFQ only. Please use hypothetical terms; do not supply goods.\n\n" : "") +
     match[2].trim() + (s.siteNotes?`\n\nSite instruction: ${s.siteNotes}`:"") + `\n\nCase/vendor: ${ref}. Reply in this thread from this address; put your terms above the quoted email.\n` +
     `Please copy these fields. Rates are INR excluding GST; freight is a single pre-tax amount. GST applies to goods plus freight. State any different basis as an exclusion.\n` +
-    `${format}\nGST: <percent>%\nFreight: <INR amount, 0 if included>\nDelivery: <number> days\nPayment: <terms>\nExclusions: <none or list>\nSpec: <exact or describe deviation>\nThis RFQ is not a work order.` };
+    `${format}\nGST: <percent>%\nFreight: <INR amount, 0 if included>\nDelivery: <number> days\nPayment: <terms>\nExclusions: <none or list>\nSpec: <exact or describe deviation>\nQuoting company: ${vendor.name}\n\nNeed the reply format again? Reply HELP in this email thread. For a site or commercial question, ask the project manager here.\nThis RFQ is not a work order.` };
 }

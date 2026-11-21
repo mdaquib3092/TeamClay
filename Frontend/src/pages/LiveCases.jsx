@@ -55,7 +55,7 @@ function CaseAction({c,board}) {
   const eligible=c.vendors.filter(v=>v.comparable);
   const [vendor,setVendor]=useState(eligible[0]?.id || ""),[note,setNote]=useState(""),[decision,setDecision]=useState("APPROVE");
   if(c.stage==="BOQ_REVIEW") {
-    const enough=c.vendors.length >= (c.demo ? board.demoMinimum : board.standardMinimum);
+    const enough=c.vendors.length >= (c.minimumInvites ?? (c.demo ? board.demoMinimum : board.standardMinimum));
     const cmd=`SEND ${c.id} B${c.boqRev} ${c.vendors.map(v=>v.id).join(" ")}`;
     return <section><h3>{staffName(board,c.pm)} · PM review</h3><p>{enough?"Review the drafts below. Send this confirmation from the registered PM WhatsApp to email these recipients.":"This segment needs more eligible vendors before dispatch."}</p>
       {enough&&<div><p>The assigned PM’s WhatsApp review message includes a private, one-tap approval link. To request a fresh link from the PM’s own WhatsApp:</p><Draft board={board} text={`REVIEWLINK ${c.id}`} label="Request PM review link"/></div>}

@@ -4,7 +4,7 @@ import { readJson } from "../sarvam.mjs";
 
 const base = "https://gmail.googleapis.com/gmail/v1/users/me/";
 const idOK = id => typeof id === "string" && /^[\w-]{1,128}$/.test(id);
-const headers = (message, name) => (message.payload?.headers || []).filter(h => h.name.toLowerCase() === name).map(h => h.value);
+const headers = (message, name) => (message.payload?.headers || []).filter(h => h.name.toLowerCase() === name.toLowerCase()).map(h => h.value);
 function belongs(message, invitation) {
   if (!idOK(message.id) || message.threadId !== invitation.thread_id || message.id === invitation.gmail_id ||
     !Number.isSafeInteger(Number(message.internalDate)) || Number(message.internalDate) <= 0 ||
@@ -13,6 +13,8 @@ function belongs(message, invitation) {
   if (from.length !== 1 || /[\r\n]/.test(from[0])) return false;
   const email = (/^[^<>,;]*<([^<>,;]+)>\s*$/.exec(from[0])?.[1] || from[0]).trim().toLowerCase();
   if (email !== invitation.email.toLowerCase()) return false;
+  if(headers(message,"Auto-Submitted").some(v=>v.trim().toLowerCase()!=="no")||
+    headers(message,"Precedence").some(v=>/^(?:bulk|list|junk|auto_reply)$/i.test(v.trim())))return false;
   return !headers(message, "Authentication-Results").some(s => /^\s*mx\.google\.com;/i.test(s) && /\bdmarc=fail\b/i.test(s));
 }
 function replyText(part) {
@@ -36,6 +38,17 @@ export class RfqMailbox {
   }
   constructor(gmail, fetcher = fetch) { this.gmail = gmail; this.fetcher = fetcher; }
   send(payload) { return this.gmail.send(payload, { confirmed: true }); }
+  async help(inv,sourceId,text){
+    if(![inv.thread_id,inv.gmail_id,sourceId].every(idOK))throw Error("Missing thread references");
+    const thread=await this.get(`threads/${inv.thread_id}`,[
+      ["format","metadata"],...["From","Subject","Message-ID","Authentication-Results","Auto-Submitted","Precedence"].map(k=>["metadataHeaders",k])]);
+    const anchor=thread.messages?.find(m=>m.id===inv.gmail_id&&m.threadId===inv.thread_id&&m.labelIds?.includes("SENT"));
+    const source=thread.messages?.find(m=>m.id===sourceId&&belongs(m,inv));
+    if(thread.id!==inv.thread_id||!anchor||!source)throw Error("Cannot verify supplier help request");
+    const refs=headers(source,"message-id"),sub=headers(anchor,"subject");
+    if(refs.length!==1||sub.length!==1)throw Error("Incomplete RFQ threading metadata");
+    return this.gmail.send({to:inv.email,subject:sub[0],text},{confirmed:true,thread:{id:inv.thread_id,parent:refs[0]}});
+  }
   async get(route, params) {
     const url = new URL(route, base);
     for (const [k, v] of params) url.searchParams.append(k, v);
@@ -48,7 +61,7 @@ export class RfqMailbox {
   // message. Fetch bodies only for unseen, matching counterparties in it.
   async replies(invitation, seen) {
     if (!idOK(invitation.thread_id) || !idOK(invitation.gmail_id)) throw new Error("Missing Gmail receipt");
-    const thread = await this.get(`threads/${invitation.thread_id}`, [["format", "metadata"], ["metadataHeaders", "From"], ["metadataHeaders", "Authentication-Results"]]);
+    const thread = await this.get(`threads/${invitation.thread_id}`, [["format", "metadata"], ...["From","Authentication-Results","Auto-Submitted","Precedence"].map(k=>["metadataHeaders",k])]);
     if (thread.id !== invitation.thread_id || !thread.messages?.some(m => m.id === invitation.gmail_id &&
       m.threadId === invitation.thread_id && m.labelIds?.includes("SENT"))) throw new Error("RFQ thread anchor missing");
     const messages = [];

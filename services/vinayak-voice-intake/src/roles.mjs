@@ -3,6 +3,11 @@ import fs from "node:fs";
 export const ROLE_POLICY = JSON.parse(fs.readFileSync(
   new URL("../config/role-policy.json", import.meta.url), "utf8"));
 
+export function rfqMinimum(projectId,exercise=false) {
+  if(exercise)return 2;
+  const overrides=ROLE_POLICY.controls.minimumEligibleRfqVendorsByProject;
+  return Object.hasOwn(overrides,projectId)?overrides[projectId]:ROLE_POLICY.controls.minimumEligibleRfqVendors;
+}
 export function roleProfiles(users) {
   return [...users.values()].map(user => ({
     user_id: user.user_id, name: user.name, role: user.role,
@@ -29,7 +34,7 @@ export function roleAssistance(note, user, users) {
       "No vendor order or approval has been created.";
   } else if (user.role === "project_manager") {
     response = `Hi ${firstName}, your procurement-coordination note has been captured for ${user.project_id}. ` +
-      "Please identify the case and current BOQ revision. Review corrections and ERP mappings, select at least three " +
+      `Please identify the case and current BOQ revision. Review corrections and ERP mappings, select at least ${rfqMinimum(user.project_id)} ` +
       "eligible RFQ vendors, and reconcile quotation rates, GST, payment, delivery and exclusions against the same scope. " +
       "Record negotiations before submitting a recommendation to the HOD. " +
       "Accounts evidence and an authorised signature are separate gates before an order can be issued. No action was executed from this note.";
@@ -78,10 +83,10 @@ export function assertWorkflowAction(user, action, record, human = {}) {
     requireGate(record.boq_reviewed === true && record.erp_mapping_reviewed === true &&
       record.duplicate_questions_resolved === true, "Finish human BOQ and ERP review first.");
     const vendors = record.rfq_vendors || [];
-    requireGate(vendors.length >= ROLE_POLICY.controls.minimumEligibleRfqVendors &&
+    requireGate(vendors.length >= rfqMinimum(record.project_id) &&
       new Set(vendors.map(vendor => vendor.id)).size === vendors.length &&
       vendors.every(vendor => notEmpty(vendor.id) && vendor.eligible === true && notEmpty(vendor.eligibility_evidence)),
-    "At least three distinct, evidenced eligible RFQ vendors are required.");
+    `At least ${rfqMinimum(record.project_id)} distinct, evidenced eligible RFQ vendors are required.`);
   }
   if (action === "submit_recommendation") {
     requireGate(record.same_scope_comparison_reviewed === true &&

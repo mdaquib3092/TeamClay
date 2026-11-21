@@ -13,6 +13,11 @@ CREATE TABLE IF NOT EXISTS wa_site_drafts (
   state TEXT NOT NULL, touched INTEGER NOT NULL,
   PRIMARY KEY(actor,project,contact)
 );
+-- Latest actionable dispatch question actually accepted by the PM's chat.
+-- The snapshot covers the exact BOQ, vendor drafts and applicable minimum.
+CREATE TABLE IF NOT EXISTS wa_pm_dispatch_offers (
+  actor TEXT PRIMARY KEY, contact TEXT NOT NULL, case_id TEXT NOT NULL REFERENCES wa_flow_cases(id),
+  boq_rev INTEGER NOT NULL, fingerprint TEXT NOT NULL, outbox_id TEXT NOT NULL, accepted TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS wa_flow_outbox (
   id TEXT PRIMARY KEY, case_id TEXT NOT NULL REFERENCES wa_flow_cases(id),
   kind TEXT NOT NULL, target TEXT NOT NULL, role TEXT, payload TEXT NOT NULL,
@@ -32,6 +37,10 @@ CREATE TABLE IF NOT EXISTS wa_flow_replies (
   received INTEGER NOT NULL, terms TEXT NOT NULL, body TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_wa_flow_replies ON wa_flow_replies(case_id,vendor_id,received);
+CREATE TABLE IF NOT EXISTS wa_flow_vendor_questions (
+  gmail_id TEXT PRIMARY KEY, case_id TEXT NOT NULL REFERENCES wa_flow_cases(id),
+  vendor_id TEXT NOT NULL, received INTEGER NOT NULL, body TEXT NOT NULL, kind TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS wa_flow_snapshots (
   case_id TEXT NOT NULL REFERENCES wa_flow_cases(id), quote_rev INTEGER NOT NULL, data TEXT NOT NULL,
   PRIMARY KEY(case_id,quote_rev)

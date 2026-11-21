@@ -35,7 +35,24 @@
   `|`-separated fields shown in the guide. The runs use the existing two-vendor
   exercise mode, current project stock, real PM approval and real transports.
   Each vendor must reply in its own invited inbox. The guide has no live
-  identities, messages or dispatch capability. Standard RFQs still require three.
+  identities, messages or dispatch capability. Standard Amara RFQs require
+  **two distinct eligible vendors**; other standard projects default to three.
+
+For an actual dispatch the assigned PM can ask the staff agent, by text or
+voice, **“How do I approve the RFQ on the dashboard?”** The agent identifies
+their pending case (or asks which one), lists the BOQ, vendor names, inboxes and
+applicable minimum, and sends their private review link. Select recipients,
+tick the review confirmation and press **Approve & send**. Alternatively, type
+**Yes send it** after the current dispatch prompt to approve all its listed
+recipients. A stale, ambiguous, or spoken confirmation does not dispatch.
+`SEND <case-id> B<revision> <vendor IDs>` remains available. The PM can ask
+“receipts <case-id>” for Gmail acceptance per vendor. HOD review comes after
+quotations and is not needed to issue the RFQ.
+
+Vendors use **Reply** in their individual RFQ email. A request for the format
+(e.g. `HELP`) gets the same BOQ and empty quote fields in that supplier’s own
+verified Gmail thread. Scope or commercial questions are routed to the PM.
+Questions do not replace previously submitted quotes or increase the quote count.
 
 ## Rehearse from a checkout
 

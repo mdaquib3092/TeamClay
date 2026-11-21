@@ -4,7 +4,7 @@ import {businessTable,MasterDataError} from "./master-data.mjs";
 import {VendorDataError} from "./vendor-data.mjs";
 import {projectScope} from "./stock-lookup.mjs";
 import {orderText,orderIntent,terseRequisition,inquiry,logistics,lineFrom,bestPrevious,indiaDay,suggestedDeadline,unitLabel} from "./order-fields.mjs";
-import {ROLE_POLICY} from "../roles.mjs";
+import {rfqMinimum} from "../roles.mjs";
 
 const hash=s=>createHash("sha256").update(s).digest("hex");
 const week=7*86400000;
@@ -149,8 +149,9 @@ export class SiteIntake {
           if(c.stage==="IN_STOCK")detail="covered by stock; no RFQ needed";
           else if(!c.scope.vendors.length)detail=`BOQ queued for ${pm}; procurement needs eligible ${g.segment} vendors to generate individual emails`;
           else detail=`${c.scope.vendors.length} ${g.segment} RFQ draft${c.scope.vendors.length===1?"":"s"} queued for ${pm}’s review`;
-          if(c.stage!=="IN_STOCK"&&c.scope.vendors.length>0&&c.scope.vendors.length<ROLE_POLICY.controls.minimumEligibleRfqVendors)
-            detail+=` (dispatch needs ${ROLE_POLICY.controls.minimumEligibleRfqVendors} eligible vendors)`;
+          const minimum=rfqMinimum(c.project_id,c.demo);
+          if(c.stage!=="IN_STOCK"&&c.scope.vendors.length>0&&c.scope.vendors.length<minimum)
+            detail+=` (dispatch needs ${minimum} eligible vendors)`;
           results.push({id:c.id,detail});
         }
         this.clear(user);
