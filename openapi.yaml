@@ -1,0 +1,859 @@
+openapi: 3.1.0
+info:
+  title: Clay Procurement API (Vinayak hackathon)
+  version: 0.1.0
+  description: |
+    Contract between backend (FastAPI + Sarvam + FastMCP) and frontend (web screens + WhatsApp simulator).
+    Freeze rule: change this file only by agreement of both people; additive changes are free, renames are not.
+
+    Conventions
+    - Base path /api/v1. JSON everywhere except quote upload (multipart).
+    - Demo auth: every request sends headers `X-Role` (site_engineer | desk | hod | admin) and `X-User` (user id).
+      Backend returns 403 `ROLE_DENIED` when a role calls something it may not (e.g. desk calling /decision).
+    - Every figure the UI shows comes as a `Sourced` object, never a bare number. UI renders `value` + a source chip.
+    - Money in INR rupees as numbers (not paise, not strings). UI formats Indian style (₹13.56 L).
+    - Missing / not comparable values are `null` with a `flag` — never 0.
+    - Times ISO 8601 with +05:30.
+    - The agent recommends only. No endpoint selects a vendor, creates an order or pays. Only the HOD `decision` endpoint changes the outcome.
+servers:
+  - url: http://localhost:8000/api/v1
+    description: real backend
+  - url: http://localhost:8001/api/v1
+    description: mock server (mock/server.py) for frontend work
+
+tags:
+  - name: packages
+  - name: requirement
+  - name: item-codes
+  - name: rfq
+  - name: quotes
+  - name: comparative
+  - name: approval
+  - name: vendors
+  - name: simulator
+  - name: admin
+
+components:
+  parameters:
+    Role:
+      name: X-Role
+      in: header
+      required: true
+      schema: { $ref: '#/components/schemas/Role' }
+    User:
+      name: X-User
+      in: header
+      required: true
+      schema: { type: string, example: soham }
+    PackageId:
+      name: package_id
+      in: path
+      required: true
+      schema: { type: string, example: PKG-AMARA-T2-WP }
+    QuoteId:
+      name: quote_id
+      in: path
+      required: true
+      schema: { type: string, example: Q-SK }
+    VendorId:
+      name: vendor_id
+      in: path
+      required: true
+      schema: { type: string, example: V-SK }
+
+  responses:
+    Error:
+      description: Error
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+
+  schemas:
+    Role:
+      type: string
+      enum: [site_engineer, desk, hod, admin]
+
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              enum: [ROLE_DENIED, NOT_FOUND, INVALID_STATE, VALIDATION, LLM_UNAVAILABLE, STT_LOW_CONFIDENCE, NOT_TEST_INBOX]
+            message: { type: string, description: Plain words, safe to show the user }
+
+    Source:
+      type: object
+      description: Where a figure came from. Rendered as a chip; click opens the file at the page.
+      required: [kind]
+      properties:
+        kind:
+          type: string
+          enum: [site_boq, quote_pdf_text, quote_handwritten, quote_ocr, erp_item_master, computed, user_input, vendor_rating]
+        file: { type: [string, 'null'], example: Quotation_SK_Construction.pdf }
+        page: { type: [integer, 'null'], example: 2 }
+        ref: { type: [string, 'null'], description: row/item ref inside the file, example: 'SL 4' }
+        synced_at: { type: [string, 'null'], format: date-time }
+
+    Sourced:
+      type: object
+      required: [value, source]
+      properties:
+        value: { description: number, string or null }
+        unit: { type: [string, 'null'], example: sqft }
+        source: { $ref: '#/components/schemas/Source' }
+        confidence: { type: [number, 'null'], minimum: 0, maximum: 1 }
+        needs_confirmation: { type: boolean, default: false }
+        confirmed_by: { type: [string, 'null'] }
+        confirmed_at: { type: [string, 'null'], format: date-time }
+        flag: { type: [string, 'null'], description: short machine code, e.g. NOT_COMPARABLE_UNIT }
+
+    Flag:
+      type: object
+      required: [code, severity, text]
+      properties:
+        code:
+          type: string
+          example: QTY_SET_MISMATCH
+          description: |
+            Known codes: QTY_SET_MISMATCH, UNIT_MISMATCH, NOT_QUOTED, NOT_MEASURED, VALIDITY_LAPSED,
+            TERMS_MISSING, GST_NOT_STATED, PAYMENT_TERMS_OPEN, ADVANCE_WITH_ORDER, MATERIAL_ADVANCE,
+            HANDWRITTEN_UNCONFIRMED, DUPLICATE_CODE, CODE_COLLISION, NO_HISTORY
+        severity: { type: string, enum: [info, warn, block] }
+        text: { type: string, description: Plain words for the UI }
+        refs: { type: array, items: { type: string } }
+
+    PackageStatus:
+      type: string
+      enum: [REQUIREMENT, CODED, RFQ_SENT, QUOTES_IN, COMPARATIVE_READY, WITH_HOD, APPROVED, SENT_BACK]
+
+    TimelineEvent:
+      type: object
+      required: [at, actor, text]
+      properties:
+        at: { type: string, format: date-time }
+        actor: { type: string, example: 'Clay' }
+        role: { type: [string, 'null'] }
+        text: { type: string }
+        status_to: { oneOf: [ { $ref: '#/components/schemas/PackageStatus' }, { type: 'null' } ] }
+
+    PackageSummary:
+      type: object
+      required: [id, title, project, status, updated_at]
+      properties:
+        id: { type: string }
+        title: { type: string, example: 'Waterproofing — Amara Tower-2' }
+        project: { type: string, example: Vinayak Amara }
+        tower: { type: [string, 'null'] }
+        category: { type: string, example: waterproofing }
+        status: { $ref: '#/components/schemas/PackageStatus' }
+        quotes_in: { type: integer }
+        rfq_sent: { type: integer }
+        updated_at: { type: string, format: date-time }
+
+    Package:
+      allOf:
+        - $ref: '#/components/schemas/PackageSummary'
+        - type: object
+          properties:
+            needed_by: { type: [string, 'null'], format: date }
+            requested_by: { type: string }
+            timeline: { type: array, items: { $ref: '#/components/schemas/TimelineEvent' } }
+            allowed_actions:
+              type: array
+              description: What the current X-Role may do next. UI shows only these buttons.
+              items:
+                type: string
+                enum: [confirm_requirement, select_codes, draft_rfq, send_rfq, upload_quote, confirm_cells, send_to_hod, decide, rate_vendor]
+
+    BoqLine:
+      type: object
+      required: [id, wo_code, description, unit, qty]
+      properties:
+        id: { type: string, example: L-WP01 }
+        wo_code: { type: string, example: WP.01 }
+        description: { type: string }
+        unit: { type: string, example: sqft }
+        qty: { $ref: '#/components/schemas/Sourced' }
+        measured: { type: boolean }
+        item_code: { type: [string, 'null'], description: selected ERP code }
+
+    RequirementDraft:
+      type: object
+      description: What the agent extracted from text / voice. Always confirmed by a human before use.
+      required: [project, items]
+      properties:
+        project: { type: string }
+        tower: { type: [string, 'null'] }
+        category: { type: [string, 'null'] }
+        needed_by: { type: [string, 'null'], format: date }
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              description: { type: string }
+              qty: { type: [number, 'null'] }
+              unit: { type: [string, 'null'] }
+        missing_fields: { type: array, items: { type: string } }
+        transcript: { type: [string, 'null'] }
+        language: { type: [string, 'null'], enum: [en, hi, bn, mixed, null] }
+        stt_confidence: { type: [number, 'null'] }
+
+    ItemCode:
+      type: object
+      required: [code, description]
+      properties:
+        code: { type: string }
+        description: { type: string }
+        row: { type: integer, description: row in ERP_item_codes_waterproofing.xlsx }
+
+    ItemMatch:
+      type: object
+      required: [line_id, candidates]
+      properties:
+        line_id: { type: string }
+        line_description: { type: string }
+        candidates:
+          type: array
+          items:
+            type: object
+            required: [code, description, confidence]
+            properties:
+              code: { type: string }
+              description: { type: string }
+              confidence: { type: number }
+              reason: { type: string }
+        flags: { type: array, items: { $ref: '#/components/schemas/Flag' } }
+        suggest_new_code: { type: [string, 'null'] }
+        selected: { type: [string, 'null'] }
+
+    Vendor:
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        categories: { type: array, items: { type: string } }
+        test_inbox: { type: string, format: email, description: All RFQs go here. Real addresses are never stored. }
+        has_history: { type: boolean }
+
+    RfqDraft:
+      type: object
+      required: [subject, body, terms, attachments]
+      properties:
+        subject: { type: string }
+        body: { type: string }
+        terms: { type: array, items: { type: string }, description: Vinayak's 6 standard terms }
+        attachments: { type: array, items: { type: string } }
+        suggested_vendor_ids: { type: array, items: { type: string } }
+
+    RfqStatus:
+      type: object
+      required: [vendor_id, vendor_name, state]
+      properties:
+        vendor_id: { type: string }
+        vendor_name: { type: string }
+        state: { type: string, enum: [not_sent, sent, follow_up_due, followed_up, quote_received] }
+        sent_to: { type: [string, 'null'], description: always a test inbox }
+        sent_at: { type: [string, 'null'], format: date-time }
+        next_follow_up_at: { type: [string, 'null'], format: date-time }
+
+    QuoteLine:
+      type: object
+      required: [id, line_id, rate]
+      properties:
+        id: { type: string, example: Q-SK-L-WP01 }
+        line_id: { type: [string, 'null'], description: matched BOQ line; null if vendor item not in BOQ }
+        vendor_description: { type: string }
+        vendor_qty: { $ref: '#/components/schemas/Sourced' }
+        rate: { $ref: '#/components/schemas/Sourced' }
+        flags: { type: array, items: { $ref: '#/components/schemas/Flag' } }
+
+    Quote:
+      type: object
+      required: [id, vendor_id, vendor_name, file, extraction_state, lines]
+      properties:
+        id: { type: string }
+        vendor_id: { type: string }
+        vendor_name: { type: string }
+        file: { type: string }
+        file_url: { type: string, description: GET this to show the original PDF }
+        pages: { type: integer }
+        extraction_state: { type: string, enum: [queued, reading, needs_confirmation, ready, failed] }
+        quote_date: { $ref: '#/components/schemas/Sourced' }
+        validity_days: { $ref: '#/components/schemas/Sourced' }
+        gst_pct: { $ref: '#/components/schemas/Sourced' }
+        gst_included: { type: [boolean, 'null'] }
+        advance: { $ref: '#/components/schemas/Sourced' }
+        payment_terms: { $ref: '#/components/schemas/Sourced' }
+        freight: { $ref: '#/components/schemas/Sourced' }
+        start_or_delivery: { $ref: '#/components/schemas/Sourced' }
+        lines: { type: array, items: { $ref: '#/components/schemas/QuoteLine' } }
+        flags: { type: array, items: { $ref: '#/components/schemas/Flag' } }
+
+    Weights:
+      type: object
+      required: [price, terms, history]
+      properties:
+        price: { type: number, example: 0.6 }
+        terms: { type: number, example: 0.2 }
+        history: { type: number, example: 0.2 }
+
+    ComparativeCell:
+      type: object
+      properties:
+        vendor_id: { type: string }
+        rate: { $ref: '#/components/schemas/Sourced' }
+        amount: { $ref: '#/components/schemas/Sourced', description: rate × Vinayak BOQ qty (computed) }
+
+    VendorColumn:
+      type: object
+      required: [vendor_id, vendor_name, total_ex_gst, rank, reason]
+      properties:
+        vendor_id: { type: string }
+        vendor_name: { type: string }
+        total_ex_gst: { $ref: '#/components/schemas/Sourced' }
+        total_incl_gst: { $ref: '#/components/schemas/Sourced' }
+        vs_lowest_pct: { type: number }
+        scores:
+          type: object
+          properties:
+            price: { type: number }
+            terms: { type: number }
+            history: { type: [number, 'null'], description: null = no history yet (never shown as low) }
+            total: { type: number }
+        rank: { type: integer }
+        terms_summary:
+          type: object
+          properties:
+            validity: { type: string }
+            advance: { type: string }
+            payment: { type: string }
+            gst: { type: string }
+        flags: { type: array, items: { $ref: '#/components/schemas/Flag' } }
+        reason: { type: string, description: One plain-words sentence generated from the computed facts only }
+
+    Comparative:
+      type: object
+      required: [package_id, basis, weights, rows, vendors, recommendation, generated_at]
+      properties:
+        package_id: { type: string }
+        basis: { type: string, example: "Unit rates × Vinayak site BOQ quantities (39,881 sqft, 6 measured items), ex-GST" }
+        weights: { $ref: '#/components/schemas/Weights' }
+        weights_note: { type: string }
+        rows:
+          type: array
+          items:
+            type: object
+            properties:
+              line_id: { type: string }
+              wo_code: { type: string }
+              description: { type: string }
+              unit: { type: string }
+              qty: { $ref: '#/components/schemas/Sourced' }
+              comparable: { type: boolean }
+              cells: { type: array, items: { $ref: '#/components/schemas/ComparativeCell' } }
+              flags: { type: array, items: { $ref: '#/components/schemas/Flag' } }
+        vendors: { type: array, items: { $ref: '#/components/schemas/VendorColumn' } }
+        package_flags: { type: array, items: { $ref: '#/components/schemas/Flag' } }
+        recommendation:
+          type: object
+          required: [text, action, blocking_flags]
+          properties:
+            action: { type: string, enum: [award_to_review, requote_first, insufficient_quotes] }
+            vendor_id: { type: [string, 'null'] }
+            text: { type: string }
+            reasons: { type: array, items: { type: string } }
+            blocking_flags: { type: array, items: { type: string } }
+        generated_at: { type: string, format: date-time }
+
+    Approval:
+      type: object
+      required: [id, package_id, state]
+      properties:
+        id: { type: string }
+        package_id: { type: string }
+        state: { type: string, enum: [pending, approved, sent_back, undone] }
+        sent_to: { type: string }
+        sent_at: { type: string, format: date-time }
+        decided_by: { type: [string, 'null'] }
+        decided_at: { type: [string, 'null'], format: date-time }
+        decision_reason: { type: [string, 'null'] }
+        undo_until: { type: [string, 'null'], format: date-time }
+
+    Rating:
+      type: object
+      required: [package_id, quality, delivery, disputes]
+      properties:
+        package_id: { type: string }
+        quality: { type: integer, minimum: 1, maximum: 5 }
+        delivery: { type: integer, minimum: 1, maximum: 5 }
+        disputes: { type: integer, minimum: 1, maximum: 5, description: 5 = no disputes }
+        note: { type: [string, 'null'] }
+        rated_by: { type: string }
+        rated_at: { type: string, format: date-time }
+        demo: { type: boolean, description: true for seeded demo ratings — UI must label them }
+
+    WaMessage:
+      type: object
+      description: One WhatsApp message as the simulator renders it. Same shape the webhook sends to Cloud API.
+      required: [type]
+      properties:
+        id: { type: string }
+        from: { type: string, enum: [user, clay, human_agent] }
+        type: { type: string, enum: [text, audio, buttons, list, card, template] }
+        lang: { type: [string, 'null'] }
+        body: { type: [string, 'null'] }
+        audio_seconds: { type: [number, 'null'] }
+        transcript: { type: [string, 'null'] }
+        header: { type: [string, 'null'] }
+        fields:
+          type: array
+          description: key/value rows for type=card (e.g. requirement card, approval card)
+          items: { type: object, properties: { k: { type: string }, v: { type: string } } }
+        buttons:
+          type: array
+          maxItems: 3
+          items: { type: object, properties: { id: { type: string }, title: { type: string, maxLength: 20 } } }
+        list:
+          type: array
+          maxItems: 10
+          items: { type: object, properties: { id: { type: string }, title: { type: string }, description: { type: string } } }
+        footer: { type: [string, 'null'], description: source line, e.g. "Source: site BOQ · synced 10:42" }
+        link: { type: [string, 'null'], description: web screen to open }
+        at: { type: string, format: date-time }
+
+    TraceStep:
+      type: object
+      required: [n, tool, status]
+      properties:
+        n: { type: integer }
+        tool: { type: string, example: parse_requirement }
+        status: { type: string, enum: [ok, empty, error, denied, fallback, handoff] }
+        ms: { type: integer }
+        args: { type: string }
+        source: { type: [string, 'null'] }
+        note: { type: [string, 'null'] }
+
+    AuditEntry:
+      type: object
+      properties:
+        at: { type: string, format: date-time }
+        role: { type: string }
+        user: { type: string }
+        tool: { type: string }
+        status: { type: string }
+        package_id: { type: [string, 'null'] }
+        detail: { type: string }
+
+paths:
+  # ---------- packages ----------
+  /packages:
+    get:
+      tags: [packages]
+      summary: List procurement packages (desk home, HOD inbox)
+      parameters: [ { $ref: '#/components/parameters/Role' }, { $ref: '#/components/parameters/User' },
+        { name: status, in: query, schema: { $ref: '#/components/schemas/PackageStatus' } } ]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, properties: { data: { type: array, items: { $ref: '#/components/schemas/PackageSummary' } } } } } } }
+
+  /packages/{package_id}:
+    get:
+      tags: [packages]
+      summary: One package with status, timeline and allowed actions for this role
+      parameters: [ { $ref: '#/components/parameters/Role' }, { $ref: '#/components/parameters/User' }, { $ref: '#/components/parameters/PackageId' } ]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, properties: { data: { $ref: '#/components/schemas/Package' } } } } } }
+        '404': { $ref: '#/components/responses/Error' }
+
+  # ---------- step 1: requirement ----------
+  /requirements/parse:
+    post:
+      tags: [requirement]
+      summary: Turn free text or a voice note into a requirement draft (does not save)
+      description: Voice → Saaras STT; if stt_confidence < 0.60 returns 422 STT_LOW_CONFIDENCE and the UI shows the menu fallback.
+      parameters: [ { $ref: '#/components/parameters/Role' }, { $ref: '#/components/parameters/User' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text: { type: [string, 'null'] }
+                audio_b64: { type: [string, 'null'], description: ogg/opus or wav, base64 }
+                lang_hint: { type: [string, 'null'], enum: [en, hi, bn, null] }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, properties: { data: { $ref: '#/components/schemas/RequirementDraft' } } } } } }
+        '422': { $ref: '#/components/responses/Error' }
+        '503': { $ref: '#/components/responses/Error' }
+
+  /requirements:
+    post:
+      tags: [requirement]
+      summary: Save a confirmed requirement → creates a package in REQUIREMENT
+      parameters: [ { $ref: '#/components/parameters/Role' }, { $ref: '#/components/parameters/User' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/RequirementDraft'
+                - type: object
+                  properties:
+                    boq_file_id: { type: [string, 'null'], description: optional uploaded BOQ sheet }
+      responses:
+        '201': { description: Created, content: { application/json: { schema: { type: object, properties: { data: { $ref: '#/components/schemas/Package' } } } } } }
+
+  /packages/{package_id}/boq:
+    get:
+      tags: [requirement]
+      summary: BOQ lines for the package (from site sheet), with quantities and sources
+      parameters: [ { $ref: '#/components/parameters/Role' }, { $ref: '#/components/parameters/User' }, { $ref: '#/components/parameters/PackageId' } ]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, properties: { data: { type: array, items: { $ref: '#/components/schemas/BoqLine' } }, flags: { type: array, items: { $ref: '#/components/schemas/Flag' } } } } } } }
+
+  # ---------- step 2: item codes ----------
+  /packages/{package_id}/item-matches:
+    get:
+      tags: [item-codes]
+      summary: Suggested ERP codes per BOQ line, with duplicate / collision flags
+      parameters: [ { $ref: '#/components/parameters/Role' }, { $ref: '#/components/parameters/User' }, { $ref: '#/components/parameters/PackageId' } ]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, properties: { data: { type: array, items: { $ref: '#/components/schemas/ItemMatch' } } } } } } }
+
+  /packages/{package_id}/item-matches/{line_id}:
+    put:
+      tags: [item-codes]
+      summary: Pick a code for a line (or accept the suggested new code). When all lines have codes, status → CODED
+      parameters: [ { $ref: '#/components/parameters/Role' }, { $ref: '#/components/parameters/User' }, { $ref: '#/components/parameters/PackageId' },
+        { name: line_id, in: path, required: true, schema: { type: string } } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code: { type: [string, 'null'] }
+                new_code: { type: [string, 'null'] }
+                new_description: { type: [string, 'null'] }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, properties: { data: { $ref: '#/components/schemas/ItemMatch' }, package_status: { $ref: '#/components/schemas/PackageStatus' } } } } } }
+
+  /item-codes:
+    get:
+      tags: [item-codes]
+      summary: Search the ERP item master
+      parameters: [ { $ref: '#/components/parameters/Role' }, { $ref: '#/components/parameters/User' }, { name: q, in: query, schema: { type: string } } ]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, properties: { data: { type: array, items: { $ref: '#/components/schemas/ItemCode' } } } } } } }
+
+  /item-codes/duplicates:
+    get:
+      tags: [item-codes, admin]
+      summary: Duplicate and colliding codes in the item master (admin data-quality view)
+      parameters: [ { $ref: '#/components/parameters/Role' }, { $ref: '#/components/parameters/User' } ]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, properties: { data: { type: array, items: { $ref: '#/components/schemas/Flag' } } } } } } }
+
+  # ---------- step 3: RFQ ----------
+  /packages/{package_id}/rfq/draft:
+    post:
+      tags: [rfq]
+      summary: Draft the RFQ email with Vinayak's 6 standard terms and suggested vendors for the category
+      parameters: [ { $ref: '#/components/parameters/Role' }, { $ref: '#/components/parameters/User' }, { $ref: '#/components/parameters/PackageId' } ]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, properties: { data: { $ref: '#/components/schemas/RfqDraft' } } } } } }
+
+  /packages/{package_id}/rfq/send:
+    post:
+      tags: [rfq]
+      summary: Send the RFQ to selected vendors' TEST inboxes. Status → RFQ_SENT
+      description: Backend refuses any address not on the test-inbox allow-list (422 NOT_TEST_INBOX).
+      parameters: [ { $ref: '#/components/parameters/Role' }, { $ref: '#/components/parameters/User' }, { $ref: '#/components/parameters/PackageId' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [vendor_ids, subject, body]
+              properties:
+                vendor_ids: { type: array, items: { type: string }, minItems: 3, description: SOP step 5 — minimum three vendors }
+                subject: { type: string }
+                body: { type: string }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, properties: { data: { type: array, items: { $ref: '#/components/schemas/RfqStatus' } } } } } } }
+        '422': { $ref: '#/components/responses/Error' }
+
+  /packages/{package_id}/rfq:
+    get:
+      tags: [rfq]
+      summary: Per-vendor RFQ status and follow-ups
+      parameters: [ { $ref: '#/components/parameters/Role' }, { $ref: '#/components/parameters/User' }, { $ref: '#/components/parameters/PackageId' } ]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, properties: { data: { type: array, items: { $ref: '#/components/schemas/RfqStatus' } } } } } } }
+
+  # ---------- step 4: quotes ----------
+  /packages/{package_id}/quotes:
+    get:
+      tags: [quotes]
+      summary: All quotes for the package (summary + lines)
+      parameters: [ { $ref: '#/components/parameters/Role' }, { $ref: '#/components/parameters/User' }, { $ref: '#/components/parameters/PackageId' } ]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, properties: { data: { type: array, items: { $ref: '#/components/schemas/Quote' } } } } } } }
+    post:
+      tags: [quotes]
+      summary: Upload a vendor reply (PDF / image / pasted email text). Extraction runs async; poll GET /quotes/{id}
+      parameters: [ { $ref: '#/components/parameters/Role' }, { $ref: '#/components/parameters/User' }, { $ref: '#/components/parameters/PackageId' } ]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [vendor_id]
+              properties:
+                vendor_id: { type: string }
+                file: { type: string, format: binary }
+                text: { type: string, description: pasted email body instead of a file }
+      responses:
+        '202': { description: Accepted, content: { application/json: { schema: { type: object, properties: { data: { $ref: '#/components/schemas/Quote' } } } } } }
+
+  /quotes/{quote_id}:
+    get:
+      tags: [quotes]
+      summary: One quote with every extracted field, its source page and confidence
+      parameters: [ { $ref: '#/components/parameters/Role' }, { $ref: '#/components/parameters/User' }, { $ref: '#/components/parameters/QuoteId' } ]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, properties: { data: { $ref: '#/components/schemas/Quote' } } } } } }
+
+  /quotes/{quote_id}/file:
+    get:
+      tags: [quotes]
+      summary: Original file, for the side-by-side viewer (supports ?page=)
+      parameters: [ { $ref: '#/components/parameters/QuoteId' }, { name: page, in: query, schema: { type: integer } } ]
+      responses:
+        '200': { description: PDF bytes, content: { application/pdf: {} } }
+
+  /quotes/{quote_id}/cells/{cell_id}:
+    put:
+      tags: [quotes]
+      summary: Human confirms or corrects one extracted value (e.g. a handwritten rate). cell_id = QuoteLine.id + ".rate" or a header field name
+      parameters: [ { $ref: '#/components/parameters/Role' }, { $ref: '#/components/parameters/User' }, { $ref: '#/components/parameters/QuoteId' },
+        { name: cell_id, in: path, required: true, schema: { type: string, example: Q-SK-L-WP01.rate } } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [value]
+              properties:
+                value: {}
+                unit: { type: [string, 'null'] }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, properties: { data: { $ref: '#/components/schemas/Sourced' } } } } } }
+
+  # ---------- step 5: comparative ----------
+  /packages/{package_id}/comparative:
+    get:
+      tags: [comparative]
+      summary: Comparative statement — computed in code, never by the LLM. Reason sentences are written from computed facts
+      parameters: [ { $ref: '#/components/parameters/Role' }, { $ref: '#/components/parameters/User' }, { $ref: '#/components/parameters/PackageId' } ]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, properties: { data: { $ref: '#/components/schemas/Comparative' } } } } } }
+        '409': { $ref: '#/components/responses/Error' }
+
+  /packages/{package_id}/comparative/weights:
+    put:
+      tags: [comparative]
+      summary: Change ranking weights (HOD or desk). Returns the recomputed comparative
+      parameters: [ { $ref: '#/components/parameters/Role' }, { $ref: '#/components/parameters/User' }, { $ref: '#/components/parameters/PackageId' } ]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/Weights' } } }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, properties: { data: { $ref: '#/components/schemas/Comparative' } } } } } }
+
+  # ---------- step 6: HOD approval ----------
+  /packages/{package_id}/send-to-hod:
+    post:
+      tags: [approval]
+      summary: Send recommendation to HOD on WhatsApp + web. Status → WITH_HOD
+      parameters: [ { $ref: '#/components/parameters/Role' }, { $ref: '#/components/parameters/User' }, { $ref: '#/components/parameters/PackageId' } ]
+      requestBody:
+        content:
+          application/json:
+            schema: { type: object, properties: { note: { type: [string, 'null'] } } }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, properties: { data: { $ref: '#/components/schemas/Approval' } } } } } }
+
+  /packages/{package_id}/decision:
+    post:
+      tags: [approval]
+      summary: HOD decides. Only X-Role=hod. Status → APPROVED or SENT_BACK. 5-minute undo
+      parameters: [ { $ref: '#/components/parameters/Role' }, { $ref: '#/components/parameters/User' }, { $ref: '#/components/parameters/PackageId' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: string, enum: [approve, send_back] }
+                vendor_id: { type: [string, 'null'], description: the vendor the HOD chooses — a human choice }
+                reason: { type: [string, 'null'], description: required when send_back }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, properties: { data: { $ref: '#/components/schemas/Approval' } } } } } }
+        '403': { $ref: '#/components/responses/Error' }
+
+  /approvals/{approval_id}/undo:
+    post:
+      tags: [approval]
+      summary: Undo within 5 minutes
+      parameters: [ { $ref: '#/components/parameters/Role' }, { $ref: '#/components/parameters/User' },
+        { name: approval_id, in: path, required: true, schema: { type: string } } ]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, properties: { data: { $ref: '#/components/schemas/Approval' } } } } } }
+        '409': { $ref: '#/components/responses/Error' }
+
+  # ---------- vendors & performance ----------
+  /vendors:
+    get:
+      tags: [vendors]
+      parameters: [ { $ref: '#/components/parameters/Role' }, { $ref: '#/components/parameters/User' }, { name: category, in: query, schema: { type: string } } ]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, properties: { data: { type: array, items: { $ref: '#/components/schemas/Vendor' } } } } } } }
+
+  /vendors/{vendor_id}:
+    patch:
+      tags: [vendors, admin]
+      summary: Set categories / test inbox (the real list has names only)
+      parameters: [ { $ref: '#/components/parameters/Role' }, { $ref: '#/components/parameters/User' }, { $ref: '#/components/parameters/VendorId' } ]
+      requestBody:
+        content:
+          application/json:
+            schema: { type: object, properties: { categories: { type: array, items: { type: string } }, test_inbox: { type: string } } }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, properties: { data: { $ref: '#/components/schemas/Vendor' } } } } } }
+
+  /vendors/{vendor_id}/ratings:
+    get:
+      tags: [vendors]
+      parameters: [ { $ref: '#/components/parameters/Role' }, { $ref: '#/components/parameters/User' }, { $ref: '#/components/parameters/VendorId' } ]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: '#/components/schemas/Rating' } }
+                  summary:
+                    type: object
+                    properties:
+                      count: { type: integer }
+                      avg_quality: { type: [number, 'null'] }
+                      avg_delivery: { type: [number, 'null'] }
+                      avg_disputes: { type: [number, 'null'] }
+                      history_score: { type: [number, 'null'] }
+    post:
+      tags: [vendors]
+      summary: Site engineer rates a vendor after a work order (WhatsApp buttons call this)
+      parameters: [ { $ref: '#/components/parameters/Role' }, { $ref: '#/components/parameters/User' }, { $ref: '#/components/parameters/VendorId' } ]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/Rating' } } }
+      responses:
+        '201': { description: Created, content: { application/json: { schema: { type: object, properties: { data: { $ref: '#/components/schemas/Rating' } } } } } }
+
+  # ---------- WhatsApp simulator (same brain as the real webhook) ----------
+  /sim/message:
+    post:
+      tags: [simulator]
+      summary: Send a message as a role; get Clay's replies and the tool trace
+      description: |
+        The real WhatsApp webhook (POST /webhooks/whatsapp, backend-only) and this endpoint call the same handler.
+        Button taps send type=button with button_id. Voice sends audio_b64.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [role, user, type]
+              properties:
+                role: { $ref: '#/components/schemas/Role' }
+                user: { type: string, example: arijit }
+                type: { type: string, enum: [text, audio, button, list_reply] }
+                text: { type: [string, 'null'] }
+                audio_b64: { type: [string, 'null'] }
+                demo_audio: { type: [string, 'null'], description: name of a bundled sample, e.g. "site_bn_waterproofing" — lets the demo run without a mic }
+                button_id: { type: [string, 'null'] }
+                conversation_id: { type: [string, 'null'] }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      conversation_id: { type: string }
+                      replies: { type: array, items: { $ref: '#/components/schemas/WaMessage' } }
+                      trace: { type: array, items: { $ref: '#/components/schemas/TraceStep' } }
+                      package_id: { type: [string, 'null'] }
+
+  /sim/conversations/{conversation_id}:
+    get:
+      tags: [simulator]
+      summary: Full thread (to re-render after refresh)
+      parameters: [ { name: conversation_id, in: path, required: true, schema: { type: string } } ]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, properties: { data: { type: array, items: { $ref: '#/components/schemas/WaMessage' } } } } } } }
+
+  /sim/reset:
+    post:
+      tags: [simulator]
+      summary: Reset demo data to the seeded Amara package (demo prep)
+      responses:
+        '200': { description: OK }
+
+  # ---------- admin ----------
+  /audit:
+    get:
+      tags: [admin]
+      parameters: [ { $ref: '#/components/parameters/Role' }, { $ref: '#/components/parameters/User' },
+        { name: package_id, in: query, schema: { type: string } }, { name: limit, in: query, schema: { type: integer, default: 50 } } ]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, properties: { data: { type: array, items: { $ref: '#/components/schemas/AuditEntry' } } } } } } }
+
+  /health:
+    get:
+      tags: [admin]
+      summary: Backend, Sarvam STT, LLM and email sink status
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api: { type: string }
+                  stt: { type: string, enum: [up, degraded, down] }
+                  llm: { type: string, enum: [up, degraded, down] }
+                  email_sink: { type: string, enum: [test_only] }

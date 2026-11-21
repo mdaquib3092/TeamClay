@@ -1,0 +1,11 @@
+vendor_id,material_code,rate,unit,gst_included,freight,delivery_days,payment_terms,raw_message
+V01,MAT003,59800,mt,no,650,3,15 days credit,"12mm Fe500D 59,800/MT, 16mm 59,200/MT. GST extra. Freight 650/MT. Delivery 3 days. 15 days credit. Valid 2 days."
+V01,MAT004,59200,mt,no,650,3,15 days credit,(same message as above)
+V02,MAT003,61.5,kg,no,0,1,Advance,"Namaskar sir 12mm 61.50/kg, 16mm 60.75/kg, GST alag. Gaadi bhada free. Payment advance. Maal kal."
+V02,MAT004,60.75,kg,no,0,1,Advance,(same message as above)
+V03,MAT003,71980,mt,yes,500,5,30 days credit,"12mm Rs 71,980/MT incl GST, 16mm Rs 71,390/MT incl GST. Freight 500/MT extra. Delivery 5 days. 30 days credit."
+V03,MAT004,71390,mt,yes,500,5,30 days credit,(same message as above)
+V04,MAT003,58900,mt,no,900,7,7 days credit,"12mm Fe500D 58,900 PMT + GST + freight 900. 16mm Fe500D not available, can give Fe550D @ 60,100. Delivery 7 days."
+V05,MAT009,372,bag,no,0,1,15 days credit,"OPC 53 Rs 372/bag + GST, free delivery at site. 15 days credit. Delivery 1 day."
+V06,MAT009,7560,mt,no,150,2,Advance,"OPC 53 Rs 7,560 per MT plus GST. Unloading Rs 150/MT extra. Full advance. Delivery 2 days."
+V07,MAT009,445,bag,yes,0,2,7 days credit,"Sir PPC cement 445/bag GST included, free delivery. OPC 53 stock me nahi. 7 din credit."

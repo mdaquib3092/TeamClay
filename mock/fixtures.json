@@ -1,0 +1,4379 @@
+{
+ "package": {
+  "id": "PKG-AMARA-T2-WP",
+  "title": "Waterproofing — Amara Tower-2",
+  "project": "Vinayak Amara",
+  "tower": "Tower-2",
+  "category": "waterproofing",
+  "status": "COMPARATIVE_READY",
+  "quotes_in": 4,
+  "rfq_sent": 4,
+  "updated_at": "2026-11-21T11:30:00+05:30",
+  "needed_by": null,
+  "requested_by": "Arijit Dey (QS & Billing, site)",
+  "timeline": [
+   {
+    "at": "2026-11-11T19:41:00+05:30",
+    "actor": "Arijit Dey",
+    "role": "site_engineer",
+    "text": "Requirement sent with quantity sheet",
+    "status_to": "REQUIREMENT"
+   },
+   {
+    "at": "2026-11-16T13:20:00+05:30",
+    "actor": "Clay",
+    "role": null,
+    "text": "6 of 8 lines coded; WP.03, WP.08 not measured",
+    "status_to": "CODED"
+   },
+   {
+    "at": "2026-11-16T18:14:00+05:30",
+    "actor": "Soham Saha",
+    "role": "desk",
+    "text": "RFQ sent to 4 test inboxes",
+    "status_to": "RFQ_SENT"
+   },
+   {
+    "at": "2026-11-17T12:00:00+05:30",
+    "actor": "Clay",
+    "role": null,
+    "text": "4 quotes read; SK has handwritten rates",
+    "status_to": "QUOTES_IN"
+   },
+   {
+    "at": "2026-11-21T11:30:00+05:30",
+    "actor": "Clay",
+    "role": null,
+    "text": "Comparative ready — recommends a re-quote round",
+    "status_to": "COMPARATIVE_READY"
+   }
+  ],
+  "allowed_actions": [
+   "confirm_cells",
+   "send_to_hod"
+  ]
+ },
+ "boq": [
+  {
+   "id": "L-WP01",
+   "wo_code": "WP.01",
+   "description": "Waterproofing at toilet floor",
+   "unit": "sqft",
+   "qty": {
+    "value": 13424.54,
+    "unit": "sqft",
+    "source": {
+     "kind": "site_boq",
+     "file": "A_Amara_Waterproofing_quantities_Tower-2.xlsx",
+     "page": null,
+     "ref": "WO ITEM-WISE BOQ · WP.01",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": null,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": null
+   },
+   "measured": true,
+   "item_code": null
+  },
+  {
+   "id": "L-WP02",
+   "wo_code": "WP.02",
+   "description": "Waterproofing at toilet wall (up to 450 mm)",
+   "unit": "sqft",
+   "qty": {
+    "value": 11554.46,
+    "unit": "sqft",
+    "source": {
+     "kind": "site_boq",
+     "file": "A_Amara_Waterproofing_quantities_Tower-2.xlsx",
+     "page": null,
+     "ref": "WO ITEM-WISE BOQ · WP.02",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": null,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": null
+   },
+   "measured": true,
+   "item_code": null
+  },
+  {
+   "id": "L-WP03",
+   "wo_code": "WP.03",
+   "description": "Waterproofing compound on toilet depression channel",
+   "unit": "rmt",
+   "qty": {
+    "value": null,
+    "unit": null,
+    "source": {
+     "kind": "site_boq",
+     "file": "A_Amara_Waterproofing_quantities_Tower-2.xlsx",
+     "page": null,
+     "ref": "WO ITEM-WISE BOQ · WP.03",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": null,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": "NOT_MEASURED"
+   },
+   "measured": false,
+   "item_code": null
+  },
+  {
+   "id": "L-WP04",
+   "wo_code": "WP.04",
+   "description": "Waterproofing at kitchen & wash floor",
+   "unit": "sqft",
+   "qty": {
+    "value": 1801.81,
+    "unit": "sqft",
+    "source": {
+     "kind": "site_boq",
+     "file": "A_Amara_Waterproofing_quantities_Tower-2.xlsx",
+     "page": null,
+     "ref": "WO ITEM-WISE BOQ · WP.04",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": null,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": null
+   },
+   "measured": true,
+   "item_code": null
+  },
+  {
+   "id": "L-WP05",
+   "wo_code": "WP.05",
+   "description": "Waterproofing at kitchen & wash wall (wet area)",
+   "unit": "sqft",
+   "qty": {
+    "value": 1919.61,
+    "unit": "sqft",
+    "source": {
+     "kind": "site_boq",
+     "file": "A_Amara_Waterproofing_quantities_Tower-2.xlsx",
+     "page": null,
+     "ref": "WO ITEM-WISE BOQ · WP.05",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": null,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": null
+   },
+   "measured": true,
+   "item_code": null
+  },
+  {
+   "id": "L-WP06",
+   "wo_code": "WP.06",
+   "description": "Waterproofing at balcony & sky terrace floor",
+   "unit": "sqft",
+   "qty": {
+    "value": 8738.07,
+    "unit": "sqft",
+    "source": {
+     "kind": "site_boq",
+     "file": "A_Amara_Waterproofing_quantities_Tower-2.xlsx",
+     "page": null,
+     "ref": "WO ITEM-WISE BOQ · WP.06",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": null,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": null
+   },
+   "measured": true,
+   "item_code": null
+  },
+  {
+   "id": "L-WP07",
+   "wo_code": "WP.07",
+   "description": "Waterproofing at balcony & sky terrace wall (up to 200 mm)",
+   "unit": "sqft",
+   "qty": {
+    "value": 2442.68,
+    "unit": "sqft",
+    "source": {
+     "kind": "site_boq",
+     "file": "A_Amara_Waterproofing_quantities_Tower-2.xlsx",
+     "page": null,
+     "ref": "WO ITEM-WISE BOQ · WP.07",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": null,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": null
+   },
+   "measured": true,
+   "item_code": null
+  },
+  {
+   "id": "L-WP08",
+   "wo_code": "WP.08",
+   "description": "Nozzle grouting (if required)",
+   "unit": "nos",
+   "qty": {
+    "value": null,
+    "unit": null,
+    "source": {
+     "kind": "site_boq",
+     "file": "A_Amara_Waterproofing_quantities_Tower-2.xlsx",
+     "page": null,
+     "ref": "WO ITEM-WISE BOQ · WP.08",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": null,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": "NOT_MEASURED"
+   },
+   "measured": false,
+   "item_code": null
+  }
+ ],
+ "item_matches": [
+  {
+   "line_id": "L-WP01",
+   "line_description": "Waterproofing at toilet floor",
+   "candidates": [
+    {
+     "code": "WP.01",
+     "description": "WATERPROOFING AT TOILET FLOOR",
+     "confidence": 0.96,
+     "reason": "Exact match to the site's WO code"
+    },
+    {
+     "code": "WP.01.A",
+     "description": "WATERPROOFING AT TOILET FLOOR-A",
+     "confidence": 0.71,
+     "reason": "Same work, '-A' variant from another project"
+    }
+   ],
+   "flags": [],
+   "suggest_new_code": null,
+   "selected": null
+  },
+  {
+   "line_id": "L-WP02",
+   "line_description": "Waterproofing at toilet wall (up to 450 mm)",
+   "candidates": [
+    {
+     "code": "WP.02",
+     "description": "WATERPROOFING AT TOILET WALL (UP TO 450 MM)",
+     "confidence": 0.96,
+     "reason": "Exact match to the site's WO code"
+    },
+    {
+     "code": "WP.02.A",
+     "description": "WATERPROOFING AT TOILET WALL (UP TO 450 MM)-A",
+     "confidence": 0.71,
+     "reason": "Same work, '-A' variant from another project"
+    }
+   ],
+   "flags": [],
+   "suggest_new_code": null,
+   "selected": null
+  },
+  {
+   "line_id": "L-WP03",
+   "line_description": "Waterproofing compound on toilet depression channel",
+   "candidates": [
+    {
+     "code": "WP.03",
+     "description": "WATERPROOFING COMPOUND ON TOILET DEPRESSION CHANNEL",
+     "confidence": 0.96,
+     "reason": "Exact match to the site's WO code"
+    },
+    {
+     "code": "WP.03.A",
+     "description": "WATERPROOFING COMPOUND ON TOILET DEPRESSION CHANNEL-A",
+     "confidence": 0.71,
+     "reason": "Same work, '-A' variant from another project"
+    }
+   ],
+   "flags": [],
+   "suggest_new_code": null,
+   "selected": null
+  },
+  {
+   "line_id": "L-WP04",
+   "line_description": "Waterproofing at kitchen & wash floor",
+   "candidates": [
+    {
+     "code": "WP.04",
+     "description": "WATERPROOFING AT KITCHEN & WASH FLOOR",
+     "confidence": 0.96,
+     "reason": "Exact match to the site's WO code"
+    },
+    {
+     "code": "WP.04.A",
+     "description": "WATERPROOFING AT KITCHEN & WASH FLOOR-A",
+     "confidence": 0.71,
+     "reason": "Same work, '-A' variant from another project"
+    }
+   ],
+   "flags": [
+    {
+     "code": "CODE_COLLISION",
+     "severity": "warn",
+     "text": "WP.04.B means kitchen FLOOR in one block and kitchen WALL in another. Avoid the .B codes.",
+     "refs": [
+      "WP.04.B"
+     ]
+    }
+   ],
+   "suggest_new_code": null,
+   "selected": null
+  },
+  {
+   "line_id": "L-WP05",
+   "line_description": "Waterproofing at kitchen & wash wall (wet area)",
+   "candidates": [
+    {
+     "code": "WP.05",
+     "description": "WATERPROOFING AT KITCHEN & WASH WALL (WET AREA)",
+     "confidence": 0.96,
+     "reason": "Exact match to the site's WO code"
+    },
+    {
+     "code": "WP.05.A",
+     "description": "WATERPROOFING AT KITCHEN & WASH WALL (WET AREA)-A",
+     "confidence": 0.71,
+     "reason": "Same work, '-A' variant from another project"
+    }
+   ],
+   "flags": [
+    {
+     "code": "CODE_COLLISION",
+     "severity": "warn",
+     "text": "WP.04.B means kitchen FLOOR in one block and kitchen WALL in another. Avoid the .B codes.",
+     "refs": [
+      "WP.04.B"
+     ]
+    }
+   ],
+   "suggest_new_code": null,
+   "selected": null
+  },
+  {
+   "line_id": "L-WP06",
+   "line_description": "Waterproofing at balcony & sky terrace floor",
+   "candidates": [
+    {
+     "code": "WP.06",
+     "description": "WATERPROOFING AT BALCONY & SKY TERRACE FLOOR",
+     "confidence": 0.96,
+     "reason": "Exact match to the site's WO code"
+    },
+    {
+     "code": "WP.06.A",
+     "description": "WATERPROOFING AT BALCONY & SKY TERRACE FLOOR-A",
+     "confidence": 0.71,
+     "reason": "Same work, '-A' variant from another project"
+    }
+   ],
+   "flags": [],
+   "suggest_new_code": null,
+   "selected": null
+  },
+  {
+   "line_id": "L-WP07",
+   "line_description": "Waterproofing at balcony & sky terrace wall (up to 200 mm)",
+   "candidates": [
+    {
+     "code": "WP.07",
+     "description": "WATERPROOFING AT BALCONY & SKY TERRACE WALL (UP TO 200 MM)",
+     "confidence": 0.96,
+     "reason": "Exact match to the site's WO code"
+    },
+    {
+     "code": "WP.07.A",
+     "description": "WATERPROOFING AT BALCONY & SKY TERRACE WALL (UP TO 200 MM)-A",
+     "confidence": 0.71,
+     "reason": "Same work, '-A' variant from another project"
+    }
+   ],
+   "flags": [],
+   "suggest_new_code": null,
+   "selected": null
+  },
+  {
+   "line_id": "L-WP08",
+   "line_description": "Nozzle grouting (if required)",
+   "candidates": [
+    {
+     "code": "WP.08",
+     "description": "NOZZLE GROUTING (IF REQUIRED)",
+     "confidence": 0.96,
+     "reason": "Exact match to the site's WO code"
+    },
+    {
+     "code": "WP.08.A",
+     "description": "NOZZLE GROUTING (IF REQUIRED)-A",
+     "confidence": 0.71,
+     "reason": "Same work, '-A' variant from another project"
+    }
+   ],
+   "flags": [
+    {
+     "code": "DUPLICATE_CODE",
+     "severity": "info",
+     "text": "WP.11.B appears twice in the item master.",
+     "refs": [
+      "WP.11.B"
+     ]
+    }
+   ],
+   "suggest_new_code": null,
+   "selected": null
+  }
+ ],
+ "item_code_dupes": [
+  {
+   "code": "DUPLICATE_CODE",
+   "severity": "warn",
+   "text": "W.P.01–W.P.05 each appear twice (rows 9–13 and 40–44).",
+   "refs": [
+    "W.P.01",
+    "W.P.02",
+    "W.P.03",
+    "W.P.04",
+    "W.P.05"
+   ]
+  },
+  {
+   "code": "DUPLICATE_CODE",
+   "severity": "warn",
+   "text": "WP.11.B appears twice (rows 32 and 38).",
+   "refs": [
+    "WP.11.B"
+   ]
+  },
+  {
+   "code": "CODE_COLLISION",
+   "severity": "block",
+   "text": "WP.04.B = kitchen floor (row 24) and kitchen wall (row 65).",
+   "refs": [
+    "WP.04.B"
+   ]
+  },
+  {
+   "code": "CODE_COLLISION",
+   "severity": "warn",
+   "text": "WP.07.B = balcony wall (row 27) and OT floor & wall (row 68).",
+   "refs": [
+    "WP.07.B"
+   ]
+  }
+ ],
+ "rfq_draft": {
+  "subject": "SEEKING QUOTATION FOR WATERPROOFING WORK AT VINAYAK AMARA",
+  "body": "Dear Sir,\n\nPlease find attached the description of work. You are requested to kindly submit your commercial quotation in accordance with the specifications in the attached file and the points below. Please price the quantities in the attached BOQ (39,881 sqft).\n\n{terms}\n\nThanks & Regards,\nSoham Saha\nSr. Engineer | Contracts & Planning",
+  "terms": [
+   "PF & ESI registration required.",
+   "TDS will be deducted as per Govt. norms.",
+   "5% Security deposit will be released after 12 months of total completion of work.",
+   "GST will be paid extra.",
+   "Water & Electricity at a point and Labour hutment will be provided.",
+   "Safety PPE cost will be under Contractor's scope."
+  ],
+  "attachments": [
+   "BOQ_Specification_Waterproofing_Amara_Tower-2_rates_blank.pdf"
+  ],
+  "suggested_vendor_ids": [
+   "V-SK",
+   "V-BAJ",
+   "V-SHY",
+   "V-PUR"
+  ]
+ },
+ "rfq_status": [
+  {
+   "vendor_id": "V-SK",
+   "vendor_name": "S K Construction",
+   "state": "quote_received",
+   "sent_to": "v-sk@test.clay.local",
+   "sent_at": "2026-11-16T18:14:00+05:30",
+   "next_follow_up_at": null
+  },
+  {
+   "vendor_id": "V-BAJ",
+   "vendor_name": "Bajrang Construction & Waterproofing",
+   "state": "quote_received",
+   "sent_to": "v-baj@test.clay.local",
+   "sent_at": "2026-11-16T18:14:00+05:30",
+   "next_follow_up_at": null
+  },
+  {
+   "vendor_id": "V-SHY",
+   "vendor_name": "Shyama",
+   "state": "quote_received",
+   "sent_to": "v-shy@test.clay.local",
+   "sent_at": "2026-11-16T18:14:00+05:30",
+   "next_follow_up_at": null
+  },
+  {
+   "vendor_id": "V-PUR",
+   "vendor_name": "Purvyakruti Sales & Services Pvt Ltd",
+   "state": "quote_received",
+   "sent_to": "v-pur@test.clay.local",
+   "sent_at": "2026-11-16T18:14:00+05:30",
+   "next_follow_up_at": null
+  }
+ ],
+ "vendors": [
+  {
+   "id": "V-SK",
+   "name": "S K Construction",
+   "categories": [
+    "waterproofing"
+   ],
+   "test_inbox": "v-sk@test.clay.local",
+   "has_history": false
+  },
+  {
+   "id": "V-BAJ",
+   "name": "Bajrang Construction & Waterproofing",
+   "categories": [
+    "waterproofing"
+   ],
+   "test_inbox": "v-baj@test.clay.local",
+   "has_history": false
+  },
+  {
+   "id": "V-SHY",
+   "name": "Shyama",
+   "categories": [
+    "waterproofing"
+   ],
+   "test_inbox": "v-shy@test.clay.local",
+   "has_history": false
+  },
+  {
+   "id": "V-PUR",
+   "name": "Purvyakruti Sales & Services Pvt Ltd",
+   "categories": [
+    "waterproofing"
+   ],
+   "test_inbox": "v-pur@test.clay.local",
+   "has_history": false
+  }
+ ],
+ "quotes": [
+  {
+   "id": "Q-SK",
+   "vendor_id": "V-SK",
+   "vendor_name": "S K Construction",
+   "file": "Quotation_SK_Construction.pdf",
+   "file_url": "/api/v1/quotes/Q-SK/file",
+   "pages": 3,
+   "extraction_state": "needs_confirmation",
+   "quote_date": {
+    "value": "2026-05-15",
+    "unit": null,
+    "source": {
+     "kind": "quote_handwritten",
+     "file": "Quotation_SK_Construction.pdf",
+     "page": null,
+     "ref": "terms",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": 0.9,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": null
+   },
+   "validity_days": {
+    "value": null,
+    "unit": "days",
+    "source": {
+     "kind": "quote_handwritten",
+     "file": "Quotation_SK_Construction.pdf",
+     "page": null,
+     "ref": "terms",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": null,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": null
+   },
+   "gst_pct": {
+    "value": null,
+    "unit": "%",
+    "source": {
+     "kind": "quote_handwritten",
+     "file": "Quotation_SK_Construction.pdf",
+     "page": null,
+     "ref": "terms",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": null,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": null
+   },
+   "gst_included": null,
+   "advance": {
+    "value": null,
+    "unit": null,
+    "source": {
+     "kind": "quote_handwritten",
+     "file": "Quotation_SK_Construction.pdf",
+     "page": null,
+     "ref": "terms",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": null,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": null
+   },
+   "payment_terms": {
+    "value": null,
+    "unit": null,
+    "source": {
+     "kind": "quote_handwritten",
+     "file": "Quotation_SK_Construction.pdf",
+     "page": null,
+     "ref": "terms",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": null,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": null
+   },
+   "freight": {
+    "value": null,
+    "unit": null,
+    "source": {
+     "kind": "quote_handwritten",
+     "file": "Quotation_SK_Construction.pdf",
+     "page": null,
+     "ref": "terms",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": null,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": null
+   },
+   "start_or_delivery": {
+    "value": null,
+    "unit": null,
+    "source": {
+     "kind": "quote_handwritten",
+     "file": "Quotation_SK_Construction.pdf",
+     "page": null,
+     "ref": "terms",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": null,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": null
+   },
+   "lines": [
+    {
+     "id": "Q-SK-L-WP01",
+     "line_id": "L-WP01",
+     "vendor_description": "Waterproofing at toilet floor",
+     "vendor_qty": {
+      "value": 30420,
+      "unit": "sqft",
+      "source": {
+       "kind": "quote_handwritten",
+       "file": "Quotation_SK_Construction.pdf",
+       "page": 1,
+       "ref": "item WP.01",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "rate": {
+      "value": 34,
+      "unit": "₹/sqft",
+      "source": {
+       "kind": "quote_handwritten",
+       "file": "Quotation_SK_Construction.pdf",
+       "page": 1,
+       "ref": "item WP.01",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": 0.6,
+      "needs_confirmation": true,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "flags": [
+      {
+       "code": "HANDWRITTEN_UNCONFIRMED",
+       "severity": "warn",
+       "text": "Handwritten rate — confirm against the scan.",
+       "refs": []
+      }
+     ]
+    },
+    {
+     "id": "Q-SK-L-WP02",
+     "line_id": "L-WP02",
+     "vendor_description": "Waterproofing at toilet wall (up to 450 mm)",
+     "vendor_qty": {
+      "value": 26300,
+      "unit": "sqft",
+      "source": {
+       "kind": "quote_handwritten",
+       "file": "Quotation_SK_Construction.pdf",
+       "page": 1,
+       "ref": "item WP.02",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "rate": {
+      "value": 34,
+      "unit": "₹/sqft",
+      "source": {
+       "kind": "quote_handwritten",
+       "file": "Quotation_SK_Construction.pdf",
+       "page": 1,
+       "ref": "item WP.02",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": 0.6,
+      "needs_confirmation": true,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "flags": [
+      {
+       "code": "HANDWRITTEN_UNCONFIRMED",
+       "severity": "warn",
+       "text": "Handwritten rate — confirm against the scan.",
+       "refs": []
+      }
+     ]
+    },
+    {
+     "id": "Q-SK-L-WP03",
+     "line_id": "L-WP03",
+     "vendor_description": "Waterproofing on toilet depression",
+     "vendor_qty": {
+      "value": null,
+      "unit": "rmt",
+      "source": {
+       "kind": "quote_handwritten",
+       "file": "Quotation_SK_Construction.pdf",
+       "page": null,
+       "ref": null,
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "rate": {
+      "value": 50,
+      "unit": "₹/rmt",
+      "source": {
+       "kind": "quote_handwritten",
+       "file": "Quotation_SK_Construction.pdf",
+       "page": 1,
+       "ref": null,
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": 0.6,
+      "needs_confirmation": true,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "flags": [
+      {
+       "code": "NOT_MEASURED",
+       "severity": "info",
+       "text": "Site did not measure the depression channel; excluded from totals.",
+       "refs": []
+      }
+     ]
+    },
+    {
+     "id": "Q-SK-L-WP04",
+     "line_id": "L-WP04",
+     "vendor_description": "Waterproofing at kitchen & wash floor",
+     "vendor_qty": {
+      "value": 7590,
+      "unit": "sqft",
+      "source": {
+       "kind": "quote_handwritten",
+       "file": "Quotation_SK_Construction.pdf",
+       "page": 2,
+       "ref": "item WP.04",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "rate": {
+      "value": 34,
+      "unit": "₹/sqft",
+      "source": {
+       "kind": "quote_handwritten",
+       "file": "Quotation_SK_Construction.pdf",
+       "page": 2,
+       "ref": "item WP.04",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": 0.6,
+      "needs_confirmation": true,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "flags": [
+      {
+       "code": "HANDWRITTEN_UNCONFIRMED",
+       "severity": "warn",
+       "text": "Handwritten rate — confirm against the scan.",
+       "refs": []
+      }
+     ]
+    },
+    {
+     "id": "Q-SK-L-WP05",
+     "line_id": "L-WP05",
+     "vendor_description": "Waterproofing at kitchen & wash wall (wet area)",
+     "vendor_qty": {
+      "value": 1300,
+      "unit": "sqft",
+      "source": {
+       "kind": "quote_handwritten",
+       "file": "Quotation_SK_Construction.pdf",
+       "page": 2,
+       "ref": "item WP.05",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "rate": {
+      "value": 34,
+      "unit": "₹/sqft",
+      "source": {
+       "kind": "quote_handwritten",
+       "file": "Quotation_SK_Construction.pdf",
+       "page": 2,
+       "ref": "item WP.05",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": 0.6,
+      "needs_confirmation": true,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "flags": [
+      {
+       "code": "HANDWRITTEN_UNCONFIRMED",
+       "severity": "warn",
+       "text": "Handwritten rate — confirm against the scan.",
+       "refs": []
+      }
+     ]
+    },
+    {
+     "id": "Q-SK-L-WP06",
+     "line_id": "L-WP06",
+     "vendor_description": "Waterproofing at balcony & sky terrace floor",
+     "vendor_qty": {
+      "value": 23720,
+      "unit": "sqft",
+      "source": {
+       "kind": "quote_handwritten",
+       "file": "Quotation_SK_Construction.pdf",
+       "page": 2,
+       "ref": "item WP.06",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "rate": {
+      "value": 34,
+      "unit": "₹/sqft",
+      "source": {
+       "kind": "quote_handwritten",
+       "file": "Quotation_SK_Construction.pdf",
+       "page": 2,
+       "ref": "item WP.06",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": 0.6,
+      "needs_confirmation": true,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "flags": [
+      {
+       "code": "HANDWRITTEN_UNCONFIRMED",
+       "severity": "warn",
+       "text": "Handwritten rate — confirm against the scan.",
+       "refs": []
+      }
+     ]
+    },
+    {
+     "id": "Q-SK-L-WP07",
+     "line_id": "L-WP07",
+     "vendor_description": "Waterproofing at balcony & sky terrace wall (up to 200 mm)",
+     "vendor_qty": {
+      "value": 11300,
+      "unit": "sqft",
+      "source": {
+       "kind": "quote_handwritten",
+       "file": "Quotation_SK_Construction.pdf",
+       "page": 3,
+       "ref": "item WP.07",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "rate": {
+      "value": 34,
+      "unit": "₹/sqft",
+      "source": {
+       "kind": "quote_handwritten",
+       "file": "Quotation_SK_Construction.pdf",
+       "page": 3,
+       "ref": "item WP.07",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": 0.6,
+      "needs_confirmation": true,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "flags": [
+      {
+       "code": "HANDWRITTEN_UNCONFIRMED",
+       "severity": "warn",
+       "text": "Handwritten rate — confirm against the scan.",
+       "refs": []
+      }
+     ]
+    },
+    {
+     "id": "Q-SK-L-WP08",
+     "line_id": "L-WP08",
+     "vendor_description": "—",
+     "vendor_qty": {
+      "value": null,
+      "unit": null,
+      "source": {
+       "kind": "computed",
+       "file": null,
+       "page": null,
+       "ref": null,
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "rate": {
+      "value": null,
+      "unit": null,
+      "source": {
+       "kind": "quote_handwritten",
+       "file": "Quotation_SK_Construction.pdf",
+       "page": null,
+       "ref": null,
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": "NOT_QUOTED"
+     },
+     "flags": [
+      {
+       "code": "NOT_QUOTED",
+       "severity": "info",
+       "text": "No vendor priced nozzle grouting.",
+       "refs": []
+      }
+     ]
+    }
+   ],
+   "flags": [
+    {
+     "code": "QTY_SET_MISMATCH",
+     "severity": "warn",
+     "text": "Priced on ~100,630 sqft — an older quantity set, ~2.5× the site BOQ (39,881 sqft). Quoted totals are not comparable; unit rates are.",
+     "refs": []
+    },
+    {
+     "code": "TERMS_MISSING",
+     "severity": "warn",
+     "text": "No payment terms, validity or conditions in the quote.",
+     "refs": []
+    },
+    {
+     "code": "GST_NOT_STATED",
+     "severity": "warn",
+     "text": "GST not mentioned.",
+     "refs": []
+    },
+    {
+     "code": "HANDWRITTEN_UNCONFIRMED",
+     "severity": "block",
+     "text": "Rates are handwritten on a scan; a person must confirm them.",
+     "refs": []
+    }
+   ]
+  },
+  {
+   "id": "Q-BAJ",
+   "vendor_id": "V-BAJ",
+   "vendor_name": "Bajrang Construction & Waterproofing",
+   "file": "Quotation_Bajrang_Construction.pdf",
+   "file_url": "/api/v1/quotes/Q-BAJ/file",
+   "pages": 6,
+   "extraction_state": "ready",
+   "quote_date": {
+    "value": "2026-05-21",
+    "unit": null,
+    "source": {
+     "kind": "quote_pdf_text",
+     "file": "Quotation_Bajrang_Construction.pdf",
+     "page": null,
+     "ref": "terms",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": 0.9,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": null
+   },
+   "validity_days": {
+    "value": 45,
+    "unit": "days",
+    "source": {
+     "kind": "quote_pdf_text",
+     "file": "Quotation_Bajrang_Construction.pdf",
+     "page": null,
+     "ref": "terms",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": 0.9,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": null
+   },
+   "gst_pct": {
+    "value": 18,
+    "unit": "%",
+    "source": {
+     "kind": "quote_pdf_text",
+     "file": "Quotation_Bajrang_Construction.pdf",
+     "page": null,
+     "ref": "terms",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": 0.9,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": null
+   },
+   "gst_included": false,
+   "advance": {
+    "value": "25% with order",
+    "unit": null,
+    "source": {
+     "kind": "quote_pdf_text",
+     "file": "Quotation_Bajrang_Construction.pdf",
+     "page": null,
+     "ref": "terms",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": 0.9,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": null
+   },
+   "payment_terms": {
+    "value": "RA bills paid within 30 days; final within 30 days of bill",
+    "unit": null,
+    "source": {
+     "kind": "quote_pdf_text",
+     "file": "Quotation_Bajrang_Construction.pdf",
+     "page": null,
+     "ref": "terms",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": 0.9,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": null
+   },
+   "freight": {
+    "value": null,
+    "unit": null,
+    "source": {
+     "kind": "quote_pdf_text",
+     "file": "Quotation_Bajrang_Construction.pdf",
+     "page": null,
+     "ref": "terms",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": null,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": null
+   },
+   "start_or_delivery": {
+    "value": "Start within 14 days of order",
+    "unit": null,
+    "source": {
+     "kind": "quote_pdf_text",
+     "file": "Quotation_Bajrang_Construction.pdf",
+     "page": null,
+     "ref": "terms",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": 0.9,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": null
+   },
+   "lines": [
+    {
+     "id": "Q-BAJ-L-WP01",
+     "line_id": "L-WP01",
+     "vendor_description": "Waterproofing at toilet floor",
+     "vendor_qty": {
+      "value": 30420,
+      "unit": "sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Bajrang_Construction.pdf",
+       "page": 2,
+       "ref": "item WP.01",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "rate": {
+      "value": 34.5,
+      "unit": "₹/sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Bajrang_Construction.pdf",
+       "page": 2,
+       "ref": "item WP.01",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": 0.97,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "flags": []
+    },
+    {
+     "id": "Q-BAJ-L-WP02",
+     "line_id": "L-WP02",
+     "vendor_description": "Waterproofing at toilet wall (up to 450 mm)",
+     "vendor_qty": {
+      "value": 26300,
+      "unit": "sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Bajrang_Construction.pdf",
+       "page": 2,
+       "ref": "item WP.02",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "rate": {
+      "value": 34.5,
+      "unit": "₹/sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Bajrang_Construction.pdf",
+       "page": 2,
+       "ref": "item WP.02",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": 0.97,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "flags": []
+    },
+    {
+     "id": "Q-BAJ-L-WP03",
+     "line_id": "L-WP03",
+     "vendor_description": "Waterproofing on toilet depression",
+     "vendor_qty": {
+      "value": null,
+      "unit": "sqm",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Bajrang_Construction.pdf",
+       "page": null,
+       "ref": null,
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "rate": {
+      "value": 34.5,
+      "unit": "₹/sqm",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Bajrang_Construction.pdf",
+       "page": 2,
+       "ref": null,
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": 0.95,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": "NOT_COMPARABLE_UNIT"
+     },
+     "flags": [
+      {
+       "code": "NOT_MEASURED",
+       "severity": "info",
+       "text": "Site did not measure the depression channel; excluded from totals.",
+       "refs": []
+      },
+      {
+       "code": "UNIT_MISMATCH",
+       "severity": "warn",
+       "text": "Quoted per SQM, others per RMT; not comparable.",
+       "refs": []
+      }
+     ]
+    },
+    {
+     "id": "Q-BAJ-L-WP04",
+     "line_id": "L-WP04",
+     "vendor_description": "Waterproofing at kitchen & wash floor",
+     "vendor_qty": {
+      "value": 7590,
+      "unit": "sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Bajrang_Construction.pdf",
+       "page": 3,
+       "ref": "item WP.04",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "rate": {
+      "value": 34.5,
+      "unit": "₹/sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Bajrang_Construction.pdf",
+       "page": 3,
+       "ref": "item WP.04",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": 0.97,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "flags": []
+    },
+    {
+     "id": "Q-BAJ-L-WP05",
+     "line_id": "L-WP05",
+     "vendor_description": "Waterproofing at kitchen & wash wall (wet area)",
+     "vendor_qty": {
+      "value": 1300,
+      "unit": "sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Bajrang_Construction.pdf",
+       "page": 4,
+       "ref": "item WP.05",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "rate": {
+      "value": 34.5,
+      "unit": "₹/sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Bajrang_Construction.pdf",
+       "page": 4,
+       "ref": "item WP.05",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": 0.97,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "flags": []
+    },
+    {
+     "id": "Q-BAJ-L-WP06",
+     "line_id": "L-WP06",
+     "vendor_description": "Waterproofing at balcony & sky terrace floor",
+     "vendor_qty": {
+      "value": 23720,
+      "unit": "sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Bajrang_Construction.pdf",
+       "page": 4,
+       "ref": "item WP.06",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "rate": {
+      "value": 34.5,
+      "unit": "₹/sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Bajrang_Construction.pdf",
+       "page": 4,
+       "ref": "item WP.06",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": 0.97,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "flags": []
+    },
+    {
+     "id": "Q-BAJ-L-WP07",
+     "line_id": "L-WP07",
+     "vendor_description": "Waterproofing at balcony & sky terrace wall (up to 200 mm)",
+     "vendor_qty": {
+      "value": 11300,
+      "unit": "sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Bajrang_Construction.pdf",
+       "page": 5,
+       "ref": "item WP.07",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "rate": {
+      "value": 34.5,
+      "unit": "₹/sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Bajrang_Construction.pdf",
+       "page": 5,
+       "ref": "item WP.07",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": 0.97,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "flags": []
+    },
+    {
+     "id": "Q-BAJ-L-WP08",
+     "line_id": "L-WP08",
+     "vendor_description": "—",
+     "vendor_qty": {
+      "value": null,
+      "unit": null,
+      "source": {
+       "kind": "computed",
+       "file": null,
+       "page": null,
+       "ref": null,
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "rate": {
+      "value": null,
+      "unit": null,
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Bajrang_Construction.pdf",
+       "page": null,
+       "ref": null,
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": "NOT_QUOTED"
+     },
+     "flags": [
+      {
+       "code": "NOT_QUOTED",
+       "severity": "info",
+       "text": "No vendor priced nozzle grouting.",
+       "refs": []
+      }
+     ]
+    }
+   ],
+   "flags": [
+    {
+     "code": "QTY_SET_MISMATCH",
+     "severity": "warn",
+     "text": "Priced on ~100,630 sqft — an older quantity set, ~2.5× the site BOQ (39,881 sqft). Quoted totals are not comparable; unit rates are.",
+     "refs": []
+    },
+    {
+     "code": "VALIDITY_LAPSED",
+     "severity": "block",
+     "text": "Dated 21 May 2026, valid 45 days → lapsed ~5 Jul 2026. Needs re-confirmation.",
+     "refs": []
+    },
+    {
+     "code": "ADVANCE_WITH_ORDER",
+     "severity": "warn",
+     "text": "Asks 25% payment with the order.",
+     "refs": []
+    }
+   ]
+  },
+  {
+   "id": "Q-SHY",
+   "vendor_id": "V-SHY",
+   "vendor_name": "Shyama",
+   "file": "Quotation_Shyama.pdf",
+   "file_url": "/api/v1/quotes/Q-SHY/file",
+   "pages": null,
+   "extraction_state": "ready",
+   "quote_date": {
+    "value": null,
+    "unit": null,
+    "source": {
+     "kind": "quote_pdf_text",
+     "file": "Quotation_Shyama.pdf",
+     "page": null,
+     "ref": "terms",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": null,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": null
+   },
+   "validity_days": {
+    "value": null,
+    "unit": "days",
+    "source": {
+     "kind": "quote_pdf_text",
+     "file": "Quotation_Shyama.pdf",
+     "page": null,
+     "ref": "terms",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": null,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": null
+   },
+   "gst_pct": {
+    "value": 18,
+    "unit": "%",
+    "source": {
+     "kind": "quote_pdf_text",
+     "file": "Quotation_Shyama.pdf",
+     "page": null,
+     "ref": "terms",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": 0.9,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": null
+   },
+   "gst_included": false,
+   "advance": {
+    "value": null,
+    "unit": null,
+    "source": {
+     "kind": "quote_pdf_text",
+     "file": "Quotation_Shyama.pdf",
+     "page": null,
+     "ref": "terms",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": null,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": null
+   },
+   "payment_terms": {
+    "value": "To be fixed after discussion",
+    "unit": null,
+    "source": {
+     "kind": "quote_pdf_text",
+     "file": "Quotation_Shyama.pdf",
+     "page": null,
+     "ref": "terms",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": 0.9,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": null
+   },
+   "freight": {
+    "value": null,
+    "unit": null,
+    "source": {
+     "kind": "quote_pdf_text",
+     "file": "Quotation_Shyama.pdf",
+     "page": null,
+     "ref": "terms",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": null,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": null
+   },
+   "start_or_delivery": {
+    "value": null,
+    "unit": null,
+    "source": {
+     "kind": "quote_pdf_text",
+     "file": "Quotation_Shyama.pdf",
+     "page": null,
+     "ref": "terms",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": null,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": null
+   },
+   "lines": [
+    {
+     "id": "Q-SHY-L-WP01",
+     "line_id": "L-WP01",
+     "vendor_description": "Waterproofing at toilet floor",
+     "vendor_qty": {
+      "value": 30420,
+      "unit": "sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Shyama.pdf",
+       "page": null,
+       "ref": "item WP.01",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "rate": {
+      "value": 42,
+      "unit": "₹/sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Shyama.pdf",
+       "page": null,
+       "ref": "item WP.01",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": 0.97,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "flags": []
+    },
+    {
+     "id": "Q-SHY-L-WP02",
+     "line_id": "L-WP02",
+     "vendor_description": "Waterproofing at toilet wall (up to 450 mm)",
+     "vendor_qty": {
+      "value": 26300,
+      "unit": "sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Shyama.pdf",
+       "page": null,
+       "ref": "item WP.02",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "rate": {
+      "value": 42,
+      "unit": "₹/sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Shyama.pdf",
+       "page": null,
+       "ref": "item WP.02",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": 0.97,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "flags": []
+    },
+    {
+     "id": "Q-SHY-L-WP03",
+     "line_id": "L-WP03",
+     "vendor_description": "Waterproofing on toilet depression",
+     "vendor_qty": {
+      "value": null,
+      "unit": "rmt",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Shyama.pdf",
+       "page": null,
+       "ref": null,
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "rate": {
+      "value": 87,
+      "unit": "₹/rmt",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Shyama.pdf",
+       "page": null,
+       "ref": null,
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": 0.95,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "flags": [
+      {
+       "code": "NOT_MEASURED",
+       "severity": "info",
+       "text": "Site did not measure the depression channel; excluded from totals.",
+       "refs": []
+      }
+     ]
+    },
+    {
+     "id": "Q-SHY-L-WP04",
+     "line_id": "L-WP04",
+     "vendor_description": "Waterproofing at kitchen & wash floor",
+     "vendor_qty": {
+      "value": 7590,
+      "unit": "sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Shyama.pdf",
+       "page": null,
+       "ref": "item WP.04",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "rate": {
+      "value": 38,
+      "unit": "₹/sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Shyama.pdf",
+       "page": null,
+       "ref": "item WP.04",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": 0.97,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "flags": []
+    },
+    {
+     "id": "Q-SHY-L-WP05",
+     "line_id": "L-WP05",
+     "vendor_description": "Waterproofing at kitchen & wash wall (wet area)",
+     "vendor_qty": {
+      "value": 1300,
+      "unit": "sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Shyama.pdf",
+       "page": null,
+       "ref": "item WP.05",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "rate": {
+      "value": 38,
+      "unit": "₹/sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Shyama.pdf",
+       "page": null,
+       "ref": "item WP.05",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": 0.97,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "flags": []
+    },
+    {
+     "id": "Q-SHY-L-WP06",
+     "line_id": "L-WP06",
+     "vendor_description": "Waterproofing at balcony & sky terrace floor",
+     "vendor_qty": {
+      "value": 23720,
+      "unit": "sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Shyama.pdf",
+       "page": null,
+       "ref": "item WP.06",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "rate": {
+      "value": 42,
+      "unit": "₹/sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Shyama.pdf",
+       "page": null,
+       "ref": "item WP.06",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": 0.97,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "flags": []
+    },
+    {
+     "id": "Q-SHY-L-WP07",
+     "line_id": "L-WP07",
+     "vendor_description": "Waterproofing at balcony & sky terrace wall (up to 200 mm)",
+     "vendor_qty": {
+      "value": 11300,
+      "unit": "sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Shyama.pdf",
+       "page": null,
+       "ref": "item WP.07",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "rate": {
+      "value": 42,
+      "unit": "₹/sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Shyama.pdf",
+       "page": null,
+       "ref": "item WP.07",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": 0.97,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "flags": []
+    },
+    {
+     "id": "Q-SHY-L-WP08",
+     "line_id": "L-WP08",
+     "vendor_description": "—",
+     "vendor_qty": {
+      "value": null,
+      "unit": null,
+      "source": {
+       "kind": "computed",
+       "file": null,
+       "page": null,
+       "ref": null,
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "rate": {
+      "value": null,
+      "unit": null,
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Shyama.pdf",
+       "page": null,
+       "ref": null,
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": "NOT_QUOTED"
+     },
+     "flags": [
+      {
+       "code": "NOT_QUOTED",
+       "severity": "info",
+       "text": "No vendor priced nozzle grouting.",
+       "refs": []
+      }
+     ]
+    }
+   ],
+   "flags": [
+    {
+     "code": "QTY_SET_MISMATCH",
+     "severity": "warn",
+     "text": "Priced on ~100,630 sqft — an older quantity set, ~2.5× the site BOQ (39,881 sqft). Quoted totals are not comparable; unit rates are.",
+     "refs": []
+    },
+    {
+     "code": "PAYMENT_TERMS_OPEN",
+     "severity": "warn",
+     "text": "Payment terms 'to be fixed after discussion'.",
+     "refs": []
+    },
+    {
+     "code": "TERMS_MISSING",
+     "severity": "info",
+     "text": "No quote date or validity found.",
+     "refs": []
+    }
+   ]
+  },
+  {
+   "id": "Q-PUR",
+   "vendor_id": "V-PUR",
+   "vendor_name": "Purvyakruti Sales & Services Pvt Ltd",
+   "file": "Quotation_Purvyakruti.pdf",
+   "file_url": "/api/v1/quotes/Q-PUR/file",
+   "pages": 4,
+   "extraction_state": "ready",
+   "quote_date": {
+    "value": "2026-11-17",
+    "unit": null,
+    "source": {
+     "kind": "quote_pdf_text",
+     "file": "Quotation_Purvyakruti.pdf",
+     "page": null,
+     "ref": "terms",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": 0.9,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": null
+   },
+   "validity_days": {
+    "value": null,
+    "unit": "days",
+    "source": {
+     "kind": "quote_pdf_text",
+     "file": "Quotation_Purvyakruti.pdf",
+     "page": null,
+     "ref": "terms",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": null,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": null
+   },
+   "gst_pct": {
+    "value": 18,
+    "unit": "%",
+    "source": {
+     "kind": "quote_pdf_text",
+     "file": "Quotation_Purvyakruti.pdf",
+     "page": null,
+     "ref": "terms",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": 0.9,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": null
+   },
+   "gst_included": false,
+   "advance": {
+    "value": "50% material secured advance against supply at site",
+    "unit": null,
+    "source": {
+     "kind": "quote_pdf_text",
+     "file": "Quotation_Purvyakruti.pdf",
+     "page": null,
+     "ref": "terms",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": 0.9,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": null
+   },
+   "payment_terms": {
+    "value": "Monthly RA bill paid within 7 days; final bill within 15 days",
+    "unit": null,
+    "source": {
+     "kind": "quote_pdf_text",
+     "file": "Quotation_Purvyakruti.pdf",
+     "page": null,
+     "ref": "terms",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": 0.9,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": null
+   },
+   "freight": {
+    "value": null,
+    "unit": null,
+    "source": {
+     "kind": "quote_pdf_text",
+     "file": "Quotation_Purvyakruti.pdf",
+     "page": null,
+     "ref": "terms",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": null,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": null
+   },
+   "start_or_delivery": {
+    "value": null,
+    "unit": null,
+    "source": {
+     "kind": "quote_pdf_text",
+     "file": "Quotation_Purvyakruti.pdf",
+     "page": null,
+     "ref": "terms",
+     "synced_at": "2026-11-21T11:30:00+05:30"
+    },
+    "confidence": null,
+    "needs_confirmation": false,
+    "confirmed_by": null,
+    "confirmed_at": null,
+    "flag": null
+   },
+   "lines": [
+    {
+     "id": "Q-PUR-L-WP01",
+     "line_id": "L-WP01",
+     "vendor_description": "Waterproofing at toilet floor",
+     "vendor_qty": {
+      "value": 13429.53,
+      "unit": "sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Purvyakruti.pdf",
+       "page": 1,
+       "ref": "item WP.01",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "rate": {
+      "value": 47,
+      "unit": "₹/sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Purvyakruti.pdf",
+       "page": 1,
+       "ref": "item WP.01",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": 0.97,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "flags": []
+    },
+    {
+     "id": "Q-PUR-L-WP02",
+     "line_id": "L-WP02",
+     "vendor_description": "Waterproofing at toilet wall (up to 450 mm)",
+     "vendor_qty": {
+      "value": 11558.76,
+      "unit": "sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Purvyakruti.pdf",
+       "page": 1,
+       "ref": "item WP.02",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "rate": {
+      "value": 47,
+      "unit": "₹/sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Purvyakruti.pdf",
+       "page": 1,
+       "ref": "item WP.02",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": 0.97,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "flags": []
+    },
+    {
+     "id": "Q-PUR-L-WP03",
+     "line_id": "L-WP03",
+     "vendor_description": "Waterproofing on toilet depression",
+     "vendor_qty": {
+      "value": null,
+      "unit": "rmt",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Purvyakruti.pdf",
+       "page": null,
+       "ref": null,
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "rate": {
+      "value": 47,
+      "unit": "₹/rmt",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Purvyakruti.pdf",
+       "page": 1,
+       "ref": null,
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": 0.95,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "flags": [
+      {
+       "code": "NOT_MEASURED",
+       "severity": "info",
+       "text": "Site did not measure the depression channel; excluded from totals.",
+       "refs": []
+      }
+     ]
+    },
+    {
+     "id": "Q-PUR-L-WP04",
+     "line_id": "L-WP04",
+     "vendor_description": "Waterproofing at kitchen & wash floor",
+     "vendor_qty": {
+      "value": 1802.48,
+      "unit": "sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Purvyakruti.pdf",
+       "page": 2,
+       "ref": "item WP.04",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "rate": {
+      "value": 47,
+      "unit": "₹/sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Purvyakruti.pdf",
+       "page": 2,
+       "ref": "item WP.04",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": 0.97,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "flags": []
+    },
+    {
+     "id": "Q-PUR-L-WP05",
+     "line_id": "L-WP05",
+     "vendor_description": "Waterproofing at kitchen & wash wall (wet area)",
+     "vendor_qty": {
+      "value": 1920.32,
+      "unit": "sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Purvyakruti.pdf",
+       "page": 2,
+       "ref": "item WP.05",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "rate": {
+      "value": 47,
+      "unit": "₹/sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Purvyakruti.pdf",
+       "page": 2,
+       "ref": "item WP.05",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": 0.97,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "flags": []
+    },
+    {
+     "id": "Q-PUR-L-WP06",
+     "line_id": "L-WP06",
+     "vendor_description": "Waterproofing at balcony & sky terrace floor",
+     "vendor_qty": {
+      "value": 8741.32,
+      "unit": "sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Purvyakruti.pdf",
+       "page": 2,
+       "ref": "item WP.06",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "rate": {
+      "value": 47,
+      "unit": "₹/sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Purvyakruti.pdf",
+       "page": 2,
+       "ref": "item WP.06",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": 0.97,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "flags": []
+    },
+    {
+     "id": "Q-PUR-L-WP07",
+     "line_id": "L-WP07",
+     "vendor_description": "Waterproofing at balcony & sky terrace wall (up to 200 mm)",
+     "vendor_qty": {
+      "value": 2443.59,
+      "unit": "sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Purvyakruti.pdf",
+       "page": 3,
+       "ref": "item WP.07",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "rate": {
+      "value": 47,
+      "unit": "₹/sqft",
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Purvyakruti.pdf",
+       "page": 3,
+       "ref": "item WP.07",
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": 0.97,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "flags": []
+    },
+    {
+     "id": "Q-PUR-L-WP08",
+     "line_id": "L-WP08",
+     "vendor_description": "—",
+     "vendor_qty": {
+      "value": null,
+      "unit": null,
+      "source": {
+       "kind": "computed",
+       "file": null,
+       "page": null,
+       "ref": null,
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": null
+     },
+     "rate": {
+      "value": null,
+      "unit": null,
+      "source": {
+       "kind": "quote_pdf_text",
+       "file": "Quotation_Purvyakruti.pdf",
+       "page": null,
+       "ref": null,
+       "synced_at": "2026-11-21T11:30:00+05:30"
+      },
+      "confidence": null,
+      "needs_confirmation": false,
+      "confirmed_by": null,
+      "confirmed_at": null,
+      "flag": "NOT_QUOTED"
+     },
+     "flags": [
+      {
+       "code": "NOT_QUOTED",
+       "severity": "info",
+       "text": "No vendor priced nozzle grouting.",
+       "refs": []
+      }
+     ]
+    }
+   ],
+   "flags": [
+    {
+     "code": "MATERIAL_ADVANCE",
+     "severity": "info",
+     "text": "50% material secured advance against supply at site.",
+     "refs": []
+    }
+   ]
+  }
+ ],
+ "comparative": {
+  "package_id": "PKG-AMARA-T2-WP",
+  "basis": "Unit rates × Vinayak site BOQ quantities (39,881 sqft, 6 measured items), ex-GST",
+  "weights": {
+   "price": 0.6,
+   "terms": 0.2,
+   "history": 0.2
+  },
+  "weights_note": "No vendor has past-performance history, so the history weight is shared pro rata between price and terms.",
+  "rows": [
+   {
+    "line_id": "L-WP01",
+    "wo_code": "WP.01",
+    "description": "Waterproofing at toilet floor",
+    "unit": "sqft",
+    "qty": {
+     "value": 13424.54,
+     "unit": "sqft",
+     "source": {
+      "kind": "site_boq",
+      "file": "A_Amara_Waterproofing_quantities_Tower-2.xlsx",
+      "page": null,
+      "ref": "WO ITEM-WISE BOQ · WP.01",
+      "synced_at": "2026-11-21T11:30:00+05:30"
+     },
+     "confidence": null,
+     "needs_confirmation": false,
+     "confirmed_by": null,
+     "confirmed_at": null,
+     "flag": null
+    },
+    "comparable": true,
+    "cells": [
+     {
+      "vendor_id": "V-SK",
+      "rate": {
+       "value": 34,
+       "unit": null,
+       "source": {
+        "kind": "quote_handwritten",
+        "file": "Quotation_SK_Construction.pdf",
+        "page": 1,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": true,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      },
+      "amount": {
+       "value": 456434.36,
+       "unit": "₹",
+       "source": {
+        "kind": "computed",
+        "file": null,
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      }
+     },
+     {
+      "vendor_id": "V-BAJ",
+      "rate": {
+       "value": 34.5,
+       "unit": null,
+       "source": {
+        "kind": "quote_pdf_text",
+        "file": "Quotation_Bajrang_Construction.pdf",
+        "page": 2,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      },
+      "amount": {
+       "value": 463146.63,
+       "unit": "₹",
+       "source": {
+        "kind": "computed",
+        "file": null,
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      }
+     },
+     {
+      "vendor_id": "V-SHY",
+      "rate": {
+       "value": 42,
+       "unit": null,
+       "source": {
+        "kind": "quote_pdf_text",
+        "file": "Quotation_Shyama.pdf",
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      },
+      "amount": {
+       "value": 563830.68,
+       "unit": "₹",
+       "source": {
+        "kind": "computed",
+        "file": null,
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      }
+     },
+     {
+      "vendor_id": "V-PUR",
+      "rate": {
+       "value": 47,
+       "unit": null,
+       "source": {
+        "kind": "quote_pdf_text",
+        "file": "Quotation_Purvyakruti.pdf",
+        "page": 1,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      },
+      "amount": {
+       "value": 630953.38,
+       "unit": "₹",
+       "source": {
+        "kind": "computed",
+        "file": null,
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      }
+     }
+    ],
+    "flags": []
+   },
+   {
+    "line_id": "L-WP02",
+    "wo_code": "WP.02",
+    "description": "Waterproofing at toilet wall (up to 450 mm)",
+    "unit": "sqft",
+    "qty": {
+     "value": 11554.46,
+     "unit": "sqft",
+     "source": {
+      "kind": "site_boq",
+      "file": "A_Amara_Waterproofing_quantities_Tower-2.xlsx",
+      "page": null,
+      "ref": "WO ITEM-WISE BOQ · WP.02",
+      "synced_at": "2026-11-21T11:30:00+05:30"
+     },
+     "confidence": null,
+     "needs_confirmation": false,
+     "confirmed_by": null,
+     "confirmed_at": null,
+     "flag": null
+    },
+    "comparable": true,
+    "cells": [
+     {
+      "vendor_id": "V-SK",
+      "rate": {
+       "value": 34,
+       "unit": null,
+       "source": {
+        "kind": "quote_handwritten",
+        "file": "Quotation_SK_Construction.pdf",
+        "page": 1,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": true,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      },
+      "amount": {
+       "value": 392851.64,
+       "unit": "₹",
+       "source": {
+        "kind": "computed",
+        "file": null,
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      }
+     },
+     {
+      "vendor_id": "V-BAJ",
+      "rate": {
+       "value": 34.5,
+       "unit": null,
+       "source": {
+        "kind": "quote_pdf_text",
+        "file": "Quotation_Bajrang_Construction.pdf",
+        "page": 2,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      },
+      "amount": {
+       "value": 398628.87,
+       "unit": "₹",
+       "source": {
+        "kind": "computed",
+        "file": null,
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      }
+     },
+     {
+      "vendor_id": "V-SHY",
+      "rate": {
+       "value": 42,
+       "unit": null,
+       "source": {
+        "kind": "quote_pdf_text",
+        "file": "Quotation_Shyama.pdf",
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      },
+      "amount": {
+       "value": 485287.32,
+       "unit": "₹",
+       "source": {
+        "kind": "computed",
+        "file": null,
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      }
+     },
+     {
+      "vendor_id": "V-PUR",
+      "rate": {
+       "value": 47,
+       "unit": null,
+       "source": {
+        "kind": "quote_pdf_text",
+        "file": "Quotation_Purvyakruti.pdf",
+        "page": 1,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      },
+      "amount": {
+       "value": 543059.62,
+       "unit": "₹",
+       "source": {
+        "kind": "computed",
+        "file": null,
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      }
+     }
+    ],
+    "flags": []
+   },
+   {
+    "line_id": "L-WP03",
+    "wo_code": "WP.03",
+    "description": "Waterproofing compound on toilet depression channel",
+    "unit": "rmt",
+    "qty": {
+     "value": null,
+     "unit": null,
+     "source": {
+      "kind": "site_boq",
+      "file": "A_Amara_Waterproofing_quantities_Tower-2.xlsx",
+      "page": null,
+      "ref": "WO ITEM-WISE BOQ · WP.03",
+      "synced_at": "2026-11-21T11:30:00+05:30"
+     },
+     "confidence": null,
+     "needs_confirmation": false,
+     "confirmed_by": null,
+     "confirmed_at": null,
+     "flag": "NOT_MEASURED"
+    },
+    "comparable": false,
+    "cells": [
+     {
+      "vendor_id": "V-SK",
+      "rate": {
+       "value": 50,
+       "unit": null,
+       "source": {
+        "kind": "quote_handwritten",
+        "file": "Quotation_SK_Construction.pdf",
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": true,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      },
+      "amount": {
+       "value": null,
+       "unit": null,
+       "source": {
+        "kind": "computed",
+        "file": null,
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": "NOT_COMPARABLE"
+      }
+     },
+     {
+      "vendor_id": "V-BAJ",
+      "rate": {
+       "value": 34.5,
+       "unit": null,
+       "source": {
+        "kind": "quote_pdf_text",
+        "file": "Quotation_Bajrang_Construction.pdf",
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      },
+      "amount": {
+       "value": null,
+       "unit": null,
+       "source": {
+        "kind": "computed",
+        "file": null,
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": "NOT_COMPARABLE"
+      }
+     },
+     {
+      "vendor_id": "V-SHY",
+      "rate": {
+       "value": 87,
+       "unit": null,
+       "source": {
+        "kind": "quote_pdf_text",
+        "file": "Quotation_Shyama.pdf",
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      },
+      "amount": {
+       "value": null,
+       "unit": null,
+       "source": {
+        "kind": "computed",
+        "file": null,
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": "NOT_COMPARABLE"
+      }
+     },
+     {
+      "vendor_id": "V-PUR",
+      "rate": {
+       "value": 47,
+       "unit": null,
+       "source": {
+        "kind": "quote_pdf_text",
+        "file": "Quotation_Purvyakruti.pdf",
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      },
+      "amount": {
+       "value": null,
+       "unit": null,
+       "source": {
+        "kind": "computed",
+        "file": null,
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": "NOT_COMPARABLE"
+      }
+     }
+    ],
+    "flags": [
+     {
+      "code": "NOT_MEASURED",
+      "severity": "info",
+      "text": "Not measured by site — excluded from totals.",
+      "refs": []
+     }
+    ]
+   },
+   {
+    "line_id": "L-WP04",
+    "wo_code": "WP.04",
+    "description": "Waterproofing at kitchen & wash floor",
+    "unit": "sqft",
+    "qty": {
+     "value": 1801.81,
+     "unit": "sqft",
+     "source": {
+      "kind": "site_boq",
+      "file": "A_Amara_Waterproofing_quantities_Tower-2.xlsx",
+      "page": null,
+      "ref": "WO ITEM-WISE BOQ · WP.04",
+      "synced_at": "2026-11-21T11:30:00+05:30"
+     },
+     "confidence": null,
+     "needs_confirmation": false,
+     "confirmed_by": null,
+     "confirmed_at": null,
+     "flag": null
+    },
+    "comparable": true,
+    "cells": [
+     {
+      "vendor_id": "V-SK",
+      "rate": {
+       "value": 34,
+       "unit": null,
+       "source": {
+        "kind": "quote_handwritten",
+        "file": "Quotation_SK_Construction.pdf",
+        "page": 2,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": true,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      },
+      "amount": {
+       "value": 61261.54,
+       "unit": "₹",
+       "source": {
+        "kind": "computed",
+        "file": null,
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      }
+     },
+     {
+      "vendor_id": "V-BAJ",
+      "rate": {
+       "value": 34.5,
+       "unit": null,
+       "source": {
+        "kind": "quote_pdf_text",
+        "file": "Quotation_Bajrang_Construction.pdf",
+        "page": 3,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      },
+      "amount": {
+       "value": 62162.44,
+       "unit": "₹",
+       "source": {
+        "kind": "computed",
+        "file": null,
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      }
+     },
+     {
+      "vendor_id": "V-SHY",
+      "rate": {
+       "value": 38,
+       "unit": null,
+       "source": {
+        "kind": "quote_pdf_text",
+        "file": "Quotation_Shyama.pdf",
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      },
+      "amount": {
+       "value": 68468.78,
+       "unit": "₹",
+       "source": {
+        "kind": "computed",
+        "file": null,
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      }
+     },
+     {
+      "vendor_id": "V-PUR",
+      "rate": {
+       "value": 47,
+       "unit": null,
+       "source": {
+        "kind": "quote_pdf_text",
+        "file": "Quotation_Purvyakruti.pdf",
+        "page": 2,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      },
+      "amount": {
+       "value": 84685.07,
+       "unit": "₹",
+       "source": {
+        "kind": "computed",
+        "file": null,
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      }
+     }
+    ],
+    "flags": []
+   },
+   {
+    "line_id": "L-WP05",
+    "wo_code": "WP.05",
+    "description": "Waterproofing at kitchen & wash wall (wet area)",
+    "unit": "sqft",
+    "qty": {
+     "value": 1919.61,
+     "unit": "sqft",
+     "source": {
+      "kind": "site_boq",
+      "file": "A_Amara_Waterproofing_quantities_Tower-2.xlsx",
+      "page": null,
+      "ref": "WO ITEM-WISE BOQ · WP.05",
+      "synced_at": "2026-11-21T11:30:00+05:30"
+     },
+     "confidence": null,
+     "needs_confirmation": false,
+     "confirmed_by": null,
+     "confirmed_at": null,
+     "flag": null
+    },
+    "comparable": true,
+    "cells": [
+     {
+      "vendor_id": "V-SK",
+      "rate": {
+       "value": 34,
+       "unit": null,
+       "source": {
+        "kind": "quote_handwritten",
+        "file": "Quotation_SK_Construction.pdf",
+        "page": 2,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": true,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      },
+      "amount": {
+       "value": 65266.74,
+       "unit": "₹",
+       "source": {
+        "kind": "computed",
+        "file": null,
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      }
+     },
+     {
+      "vendor_id": "V-BAJ",
+      "rate": {
+       "value": 34.5,
+       "unit": null,
+       "source": {
+        "kind": "quote_pdf_text",
+        "file": "Quotation_Bajrang_Construction.pdf",
+        "page": 4,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      },
+      "amount": {
+       "value": 66226.54,
+       "unit": "₹",
+       "source": {
+        "kind": "computed",
+        "file": null,
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      }
+     },
+     {
+      "vendor_id": "V-SHY",
+      "rate": {
+       "value": 38,
+       "unit": null,
+       "source": {
+        "kind": "quote_pdf_text",
+        "file": "Quotation_Shyama.pdf",
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      },
+      "amount": {
+       "value": 72945.18,
+       "unit": "₹",
+       "source": {
+        "kind": "computed",
+        "file": null,
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      }
+     },
+     {
+      "vendor_id": "V-PUR",
+      "rate": {
+       "value": 47,
+       "unit": null,
+       "source": {
+        "kind": "quote_pdf_text",
+        "file": "Quotation_Purvyakruti.pdf",
+        "page": 2,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      },
+      "amount": {
+       "value": 90221.67,
+       "unit": "₹",
+       "source": {
+        "kind": "computed",
+        "file": null,
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      }
+     }
+    ],
+    "flags": []
+   },
+   {
+    "line_id": "L-WP06",
+    "wo_code": "WP.06",
+    "description": "Waterproofing at balcony & sky terrace floor",
+    "unit": "sqft",
+    "qty": {
+     "value": 8738.07,
+     "unit": "sqft",
+     "source": {
+      "kind": "site_boq",
+      "file": "A_Amara_Waterproofing_quantities_Tower-2.xlsx",
+      "page": null,
+      "ref": "WO ITEM-WISE BOQ · WP.06",
+      "synced_at": "2026-11-21T11:30:00+05:30"
+     },
+     "confidence": null,
+     "needs_confirmation": false,
+     "confirmed_by": null,
+     "confirmed_at": null,
+     "flag": null
+    },
+    "comparable": true,
+    "cells": [
+     {
+      "vendor_id": "V-SK",
+      "rate": {
+       "value": 34,
+       "unit": null,
+       "source": {
+        "kind": "quote_handwritten",
+        "file": "Quotation_SK_Construction.pdf",
+        "page": 2,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": true,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      },
+      "amount": {
+       "value": 297094.38,
+       "unit": "₹",
+       "source": {
+        "kind": "computed",
+        "file": null,
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      }
+     },
+     {
+      "vendor_id": "V-BAJ",
+      "rate": {
+       "value": 34.5,
+       "unit": null,
+       "source": {
+        "kind": "quote_pdf_text",
+        "file": "Quotation_Bajrang_Construction.pdf",
+        "page": 4,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      },
+      "amount": {
+       "value": 301463.41,
+       "unit": "₹",
+       "source": {
+        "kind": "computed",
+        "file": null,
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      }
+     },
+     {
+      "vendor_id": "V-SHY",
+      "rate": {
+       "value": 42,
+       "unit": null,
+       "source": {
+        "kind": "quote_pdf_text",
+        "file": "Quotation_Shyama.pdf",
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      },
+      "amount": {
+       "value": 366998.94,
+       "unit": "₹",
+       "source": {
+        "kind": "computed",
+        "file": null,
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      }
+     },
+     {
+      "vendor_id": "V-PUR",
+      "rate": {
+       "value": 47,
+       "unit": null,
+       "source": {
+        "kind": "quote_pdf_text",
+        "file": "Quotation_Purvyakruti.pdf",
+        "page": 2,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      },
+      "amount": {
+       "value": 410689.29,
+       "unit": "₹",
+       "source": {
+        "kind": "computed",
+        "file": null,
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      }
+     }
+    ],
+    "flags": []
+   },
+   {
+    "line_id": "L-WP07",
+    "wo_code": "WP.07",
+    "description": "Waterproofing at balcony & sky terrace wall (up to 200 mm)",
+    "unit": "sqft",
+    "qty": {
+     "value": 2442.68,
+     "unit": "sqft",
+     "source": {
+      "kind": "site_boq",
+      "file": "A_Amara_Waterproofing_quantities_Tower-2.xlsx",
+      "page": null,
+      "ref": "WO ITEM-WISE BOQ · WP.07",
+      "synced_at": "2026-11-21T11:30:00+05:30"
+     },
+     "confidence": null,
+     "needs_confirmation": false,
+     "confirmed_by": null,
+     "confirmed_at": null,
+     "flag": null
+    },
+    "comparable": true,
+    "cells": [
+     {
+      "vendor_id": "V-SK",
+      "rate": {
+       "value": 34,
+       "unit": null,
+       "source": {
+        "kind": "quote_handwritten",
+        "file": "Quotation_SK_Construction.pdf",
+        "page": 3,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": true,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      },
+      "amount": {
+       "value": 83051.12,
+       "unit": "₹",
+       "source": {
+        "kind": "computed",
+        "file": null,
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      }
+     },
+     {
+      "vendor_id": "V-BAJ",
+      "rate": {
+       "value": 34.5,
+       "unit": null,
+       "source": {
+        "kind": "quote_pdf_text",
+        "file": "Quotation_Bajrang_Construction.pdf",
+        "page": 5,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      },
+      "amount": {
+       "value": 84272.46,
+       "unit": "₹",
+       "source": {
+        "kind": "computed",
+        "file": null,
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      }
+     },
+     {
+      "vendor_id": "V-SHY",
+      "rate": {
+       "value": 42,
+       "unit": null,
+       "source": {
+        "kind": "quote_pdf_text",
+        "file": "Quotation_Shyama.pdf",
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      },
+      "amount": {
+       "value": 102592.56,
+       "unit": "₹",
+       "source": {
+        "kind": "computed",
+        "file": null,
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      }
+     },
+     {
+      "vendor_id": "V-PUR",
+      "rate": {
+       "value": 47,
+       "unit": null,
+       "source": {
+        "kind": "quote_pdf_text",
+        "file": "Quotation_Purvyakruti.pdf",
+        "page": 3,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      },
+      "amount": {
+       "value": 114805.96,
+       "unit": "₹",
+       "source": {
+        "kind": "computed",
+        "file": null,
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      }
+     }
+    ],
+    "flags": []
+   },
+   {
+    "line_id": "L-WP08",
+    "wo_code": "WP.08",
+    "description": "Nozzle grouting (if required)",
+    "unit": "nos",
+    "qty": {
+     "value": null,
+     "unit": null,
+     "source": {
+      "kind": "site_boq",
+      "file": "A_Amara_Waterproofing_quantities_Tower-2.xlsx",
+      "page": null,
+      "ref": "WO ITEM-WISE BOQ · WP.08",
+      "synced_at": "2026-11-21T11:30:00+05:30"
+     },
+     "confidence": null,
+     "needs_confirmation": false,
+     "confirmed_by": null,
+     "confirmed_at": null,
+     "flag": "NOT_MEASURED"
+    },
+    "comparable": false,
+    "cells": [
+     {
+      "vendor_id": "V-SK",
+      "rate": {
+       "value": null,
+       "unit": null,
+       "source": {
+        "kind": "quote_handwritten",
+        "file": "Quotation_SK_Construction.pdf",
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      },
+      "amount": {
+       "value": null,
+       "unit": null,
+       "source": {
+        "kind": "computed",
+        "file": null,
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": "NOT_COMPARABLE"
+      }
+     },
+     {
+      "vendor_id": "V-BAJ",
+      "rate": {
+       "value": null,
+       "unit": null,
+       "source": {
+        "kind": "quote_pdf_text",
+        "file": "Quotation_Bajrang_Construction.pdf",
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      },
+      "amount": {
+       "value": null,
+       "unit": null,
+       "source": {
+        "kind": "computed",
+        "file": null,
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": "NOT_COMPARABLE"
+      }
+     },
+     {
+      "vendor_id": "V-SHY",
+      "rate": {
+       "value": null,
+       "unit": null,
+       "source": {
+        "kind": "quote_pdf_text",
+        "file": "Quotation_Shyama.pdf",
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      },
+      "amount": {
+       "value": null,
+       "unit": null,
+       "source": {
+        "kind": "computed",
+        "file": null,
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": "NOT_COMPARABLE"
+      }
+     },
+     {
+      "vendor_id": "V-PUR",
+      "rate": {
+       "value": null,
+       "unit": null,
+       "source": {
+        "kind": "quote_pdf_text",
+        "file": "Quotation_Purvyakruti.pdf",
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": null
+      },
+      "amount": {
+       "value": null,
+       "unit": null,
+       "source": {
+        "kind": "computed",
+        "file": null,
+        "page": null,
+        "ref": null,
+        "synced_at": "2026-11-21T11:30:00+05:30"
+       },
+       "confidence": null,
+       "needs_confirmation": false,
+       "confirmed_by": null,
+       "confirmed_at": null,
+       "flag": "NOT_COMPARABLE"
+      }
+     }
+    ],
+    "flags": [
+     {
+      "code": "NOT_MEASURED",
+      "severity": "info",
+      "text": "Not measured by site — excluded from totals.",
+      "refs": []
+     }
+    ]
+   }
+  ],
+  "vendors": [
+   {
+    "vendor_id": "V-BAJ",
+    "vendor_name": "Bajrang Construction & Waterproofing",
+    "total_ex_gst": {
+     "value": 1375900.36,
+     "unit": "₹",
+     "source": {
+      "kind": "computed",
+      "file": null,
+      "page": null,
+      "ref": null,
+      "synced_at": "2026-11-21T11:30:00+05:30"
+     },
+     "confidence": null,
+     "needs_confirmation": false,
+     "confirmed_by": null,
+     "confirmed_at": null,
+     "flag": null
+    },
+    "total_incl_gst": {
+     "value": 1623562.42,
+     "unit": "₹",
+     "source": {
+      "kind": "computed",
+      "file": null,
+      "page": null,
+      "ref": null,
+      "synced_at": "2026-11-21T11:30:00+05:30"
+     },
+     "confidence": null,
+     "needs_confirmation": false,
+     "confirmed_by": null,
+     "confirmed_at": null,
+     "flag": null
+    },
+    "vs_lowest_pct": 1.5,
+    "scores": {
+     "price": 98.6,
+     "terms": 55,
+     "history": null,
+     "total": 87.7
+    },
+    "terms_summary": {
+     "validity": "45 days — lapsed ~5 Jul",
+     "advance": "25% with order",
+     "payment": "RA bills paid within 30 days; final within 30 days of bill",
+     "gst": "18% extra"
+    },
+    "flags": [
+     {
+      "code": "QTY_SET_MISMATCH",
+      "severity": "warn",
+      "text": "Priced on ~100,630 sqft — an older quantity set, ~2.5× the site BOQ (39,881 sqft). Quoted totals are not comparable; unit rates are.",
+      "refs": []
+     },
+     {
+      "code": "VALIDITY_LAPSED",
+      "severity": "block",
+      "text": "Dated 21 May 2026, valid 45 days → lapsed ~5 Jul 2026. Needs re-confirmation.",
+      "refs": []
+     },
+     {
+      "code": "ADVANCE_WITH_ORDER",
+      "severity": "warn",
+      "text": "Asks 25% payment with the order.",
+      "refs": []
+     },
+     {
+      "code": "NO_HISTORY",
+      "severity": "info",
+      "text": "No past-performance record yet.",
+      "refs": []
+     }
+    ],
+    "rank": 1,
+    "reason": "Within 1.5% of the lowest, with clear terms, but the offer lapsed in July, asks 25% with the order, and used the older quantities."
+   },
+   {
+    "vendor_id": "V-SK",
+    "vendor_name": "S K Construction",
+    "total_ex_gst": {
+     "value": 1355959.78,
+     "unit": "₹",
+     "source": {
+      "kind": "computed",
+      "file": null,
+      "page": null,
+      "ref": null,
+      "synced_at": "2026-11-21T11:30:00+05:30"
+     },
+     "confidence": null,
+     "needs_confirmation": false,
+     "confirmed_by": null,
+     "confirmed_at": null,
+     "flag": null
+    },
+    "total_incl_gst": {
+     "value": 1600032.54,
+     "unit": "₹",
+     "source": {
+      "kind": "computed",
+      "file": null,
+      "page": null,
+      "ref": null,
+      "synced_at": "2026-11-21T11:30:00+05:30"
+     },
+     "confidence": null,
+     "needs_confirmation": false,
+     "confirmed_by": null,
+     "confirmed_at": null,
+     "flag": null
+    },
+    "vs_lowest_pct": 0.0,
+    "scores": {
+     "price": 100.0,
+     "terms": 50,
+     "history": null,
+     "total": 87.5
+    },
+    "terms_summary": {
+     "validity": "Not stated",
+     "advance": "Not stated",
+     "payment": "Not stated",
+     "gst": "Not stated"
+    },
+    "flags": [
+     {
+      "code": "QTY_SET_MISMATCH",
+      "severity": "warn",
+      "text": "Priced on ~100,630 sqft — an older quantity set, ~2.5× the site BOQ (39,881 sqft). Quoted totals are not comparable; unit rates are.",
+      "refs": []
+     },
+     {
+      "code": "TERMS_MISSING",
+      "severity": "warn",
+      "text": "No payment terms, validity or conditions in the quote.",
+      "refs": []
+     },
+     {
+      "code": "GST_NOT_STATED",
+      "severity": "warn",
+      "text": "GST not mentioned.",
+      "refs": []
+     },
+     {
+      "code": "HANDWRITTEN_UNCONFIRMED",
+      "severity": "block",
+      "text": "Rates are handwritten on a scan; a person must confirm them.",
+      "refs": []
+     },
+     {
+      "code": "NO_HISTORY",
+      "severity": "info",
+      "text": "No past-performance record yet.",
+      "refs": []
+     }
+    ],
+    "rank": 2,
+    "reason": "Lowest rate (₹34/sqft) but handwritten and unconfirmed, no terms or GST stated, and priced on an older quantity set."
+   },
+   {
+    "vendor_id": "V-PUR",
+    "vendor_name": "Purvyakruti Sales & Services Pvt Ltd",
+    "total_ex_gst": {
+     "value": 1874414.99,
+     "unit": "₹",
+     "source": {
+      "kind": "computed",
+      "file": null,
+      "page": null,
+      "ref": null,
+      "synced_at": "2026-11-21T11:30:00+05:30"
+     },
+     "confidence": null,
+     "needs_confirmation": false,
+     "confirmed_by": null,
+     "confirmed_at": null,
+     "flag": null
+    },
+    "total_incl_gst": {
+     "value": 2211809.69,
+     "unit": "₹",
+     "source": {
+      "kind": "computed",
+      "file": null,
+      "page": null,
+      "ref": null,
+      "synced_at": "2026-11-21T11:30:00+05:30"
+     },
+     "confidence": null,
+     "needs_confirmation": false,
+     "confirmed_by": null,
+     "confirmed_at": null,
+     "flag": null
+    },
+    "vs_lowest_pct": 38.2,
+    "scores": {
+     "price": 72.3,
+     "terms": 95,
+     "history": null,
+     "total": 78.0
+    },
+    "terms_summary": {
+     "validity": "Dated 17 Nov (current)",
+     "advance": "50% material secured advance against supply at site",
+     "payment": "Monthly RA bill paid within 7 days; final bill within 15 days",
+     "gst": "18% extra"
+    },
+    "flags": [
+     {
+      "code": "MATERIAL_ADVANCE",
+      "severity": "info",
+      "text": "50% material secured advance against supply at site.",
+      "refs": []
+     },
+     {
+      "code": "NO_HISTORY",
+      "severity": "info",
+      "text": "No past-performance record yet.",
+      "refs": []
+     }
+    ],
+    "rank": 3,
+    "reason": "Highest rate (₹47/sqft, 38% above lowest) but the only current quote priced on Vinayak's own BOQ, with complete terms."
+   },
+   {
+    "vendor_id": "V-SHY",
+    "vendor_name": "Shyama",
+    "total_ex_gst": {
+     "value": 1660123.46,
+     "unit": "₹",
+     "source": {
+      "kind": "computed",
+      "file": null,
+      "page": null,
+      "ref": null,
+      "synced_at": "2026-11-21T11:30:00+05:30"
+     },
+     "confidence": null,
+     "needs_confirmation": false,
+     "confirmed_by": null,
+     "confirmed_at": null,
+     "flag": null
+    },
+    "total_incl_gst": {
+     "value": 1958945.68,
+     "unit": "₹",
+     "source": {
+      "kind": "computed",
+      "file": null,
+      "page": null,
+      "ref": null,
+      "synced_at": "2026-11-21T11:30:00+05:30"
+     },
+     "confidence": null,
+     "needs_confirmation": false,
+     "confirmed_by": null,
+     "confirmed_at": null,
+     "flag": null
+    },
+    "vs_lowest_pct": 22.4,
+    "scores": {
+     "price": 81.7,
+     "terms": 50,
+     "history": null,
+     "total": 73.8
+    },
+    "terms_summary": {
+     "validity": "Not stated",
+     "advance": "Not stated",
+     "payment": "To be fixed after discussion",
+     "gst": "18% extra"
+    },
+    "flags": [
+     {
+      "code": "QTY_SET_MISMATCH",
+      "severity": "warn",
+      "text": "Priced on ~100,630 sqft — an older quantity set, ~2.5× the site BOQ (39,881 sqft). Quoted totals are not comparable; unit rates are.",
+      "refs": []
+     },
+     {
+      "code": "PAYMENT_TERMS_OPEN",
+      "severity": "warn",
+      "text": "Payment terms 'to be fixed after discussion'.",
+      "refs": []
+     },
+     {
+      "code": "TERMS_MISSING",
+      "severity": "info",
+      "text": "No quote date or validity found.",
+      "refs": []
+     },
+     {
+      "code": "NO_HISTORY",
+      "severity": "info",
+      "text": "No past-performance record yet.",
+      "refs": []
+     }
+    ],
+    "rank": 4,
+    "reason": "Mid-priced (₹38–42/sqft); payment terms left open and no quote date; older quantity set."
+   }
+  ],
+  "package_flags": [
+   {
+    "code": "QTY_SET_MISMATCH",
+    "severity": "warn",
+    "text": "3 of 4 vendors priced ~100,630 sqft vs the site BOQ of 39,881 sqft.",
+    "refs": [
+     "V-SK",
+     "V-BAJ",
+     "V-SHY"
+    ]
+   },
+   {
+    "code": "NOT_QUOTED",
+    "severity": "info",
+    "text": "Nobody priced WP.08 nozzle grouting; WP.03 not measured by site.",
+    "refs": []
+   }
+  ],
+  "recommendation": {
+   "action": "requote_first",
+   "vendor_id": null,
+   "text": "Purvyakruti's is the only current quote on the right quantities and is 38% above the lowest rate. Recommend asking SK, Bajrang and Shyama to re-quote on 39,881 sqft before deciding.",
+   "reasons": [
+    "3 of 4 quotes use an older quantity set (~2.5× site BOQ).",
+    "Bajrang's offer lapsed in July; SK's rates are handwritten and unconfirmed.",
+    "Price gap to the only current quote is about ₹5.2 L ex-GST — worth one re-quote round."
+   ],
+   "blocking_flags": [
+    "QTY_SET_MISMATCH",
+    "VALIDITY_LAPSED",
+    "HANDWRITTEN_UNCONFIRMED"
+   ]
+  },
+  "generated_at": "2026-11-21T11:30:00+05:30"
+ },
+ "sim": {
+  "site_voice": {
+   "replies": [
+    {
+     "id": "m1",
+     "from": "clay",
+     "type": "card",
+     "lang": "bn",
+     "body": null,
+     "audio_seconds": null,
+     "transcript": "Tower-2 er waterproofing er kaaj, toilet, kitchen, balcony, quantity sheet pathiyechi",
+     "header": "নতুন রিকোয়ারমেন্ট · Requirement draft",
+     "fields": [
+      {
+       "k": "Project",
+       "v": "Vinayak Amara · Tower-2"
+      },
+      {
+       "k": "Work",
+       "v": "Waterproofing — toilets, kitchen/wash, balcony, FRP"
+      },
+      {
+       "k": "Qty",
+       "v": "39,881 sqft (from attached sheet)"
+      },
+      {
+       "k": "Start",
+       "v": "Nov 2026 · finish Jun 2028"
+      }
+     ],
+     "buttons": [
+      {
+       "id": "req_confirm",
+       "title": "Confirm"
+      },
+      {
+       "id": "req_edit",
+       "title": "Edit"
+      }
+     ],
+     "list": [],
+     "footer": "Source: voice note + site BOQ · synced 11:30",
+     "link": null,
+     "at": "2026-11-21T11:30:00+05:30"
+    }
+   ],
+   "trace": [
+    {
+     "n": 1,
+     "tool": "transcribe",
+     "status": "ok",
+     "ms": 1400,
+     "args": "lang=bn",
+     "source": null,
+     "note": "conf 0.88"
+    },
+    {
+     "n": 2,
+     "tool": "parse_requirement",
+     "status": "ok",
+     "ms": 2100,
+     "args": "sarvam-105b",
+     "source": "A_Amara_Waterproofing_quantities_Tower-2.xlsx",
+     "note": null
+    }
+   ],
+   "package_id": "PKG-AMARA-T2-WP"
+  },
+  "site_bad_audio": {
+   "replies": [
+    {
+     "id": "m2",
+     "from": "clay",
+     "type": "buttons",
+     "lang": "bn",
+     "body": "দুঃখিত, পরিষ্কার শুনতে পাইনি। লিখে পাঠান বা বেছে নিন:",
+     "audio_seconds": null,
+     "transcript": null,
+     "header": null,
+     "fields": [],
+     "buttons": [
+      {
+       "id": "new_req",
+       "title": "New requirement"
+      },
+      {
+       "id": "status",
+       "title": "Status"
+      },
+      {
+       "id": "rate_vendor",
+       "title": "Rate a vendor"
+      }
+     ],
+     "list": [],
+     "footer": null,
+     "link": null,
+     "at": "2026-11-21T11:30:00+05:30"
+    }
+   ],
+   "trace": [
+    {
+     "n": 1,
+     "tool": "transcribe",
+     "status": "fallback",
+     "ms": 1900,
+     "args": "lang=bn",
+     "source": null,
+     "note": "conf 0.41 < 0.60 → menu"
+    }
+   ],
+   "package_id": null
+  },
+  "hod_card": {
+   "replies": [
+    {
+     "id": "m3",
+     "from": "clay",
+     "type": "card",
+     "lang": null,
+     "body": null,
+     "audio_seconds": null,
+     "transcript": null,
+     "header": "Approval needed · Waterproofing, Amara T-2",
+     "fields": [
+      {
+       "k": "Quotes",
+       "v": "4 · ₹13.56 L – ₹18.74 L ex-GST"
+      },
+      {
+       "k": "Recommendation",
+       "v": "Re-quote SK, Bajrang, Shyama on 39,881 sqft"
+      },
+      {
+       "k": "Why",
+       "v": "3 quotes on old qty · Bajrang lapsed · SK handwritten"
+      }
+     ],
+     "buttons": [
+      {
+       "id": "hod_approve",
+       "title": "Approve"
+      },
+      {
+       "id": "hod_send_back",
+       "title": "Send back"
+      },
+      {
+       "id": "hod_ask",
+       "title": "Ask a question"
+      }
+     ],
+     "list": [],
+     "footer": "Source: comparative · 4 quotes · computed 11:30",
+     "link": "/packages/PKG-AMARA-T2-WP/comparative",
+     "at": "2026-11-21T11:30:00+05:30"
+    }
+   ],
+   "trace": [
+    {
+     "n": 1,
+     "tool": "send_to_hod",
+     "status": "handoff",
+     "ms": 210,
+     "args": "PKG-AMARA-T2-WP",
+     "source": "comparative",
+     "note": "agent recommends only"
+    }
+   ],
+   "package_id": "PKG-AMARA-T2-WP"
+  },
+  "rate_vendor": {
+   "replies": [
+    {
+     "id": "m4",
+     "from": "clay",
+     "type": "buttons",
+     "lang": null,
+     "body": "Purvyakruti finished the mock-up floor. Quality of work?",
+     "audio_seconds": null,
+     "transcript": null,
+     "header": null,
+     "fields": [],
+     "buttons": [
+      {
+       "id": "q_5",
+       "title": "Good (5)"
+      },
+      {
+       "id": "q_3",
+       "title": "OK (3)"
+      },
+      {
+       "id": "q_1",
+       "title": "Poor (1)"
+      }
+     ],
+     "list": [],
+     "footer": "Saved to vendor history · used in future rankings",
+     "link": null,
+     "at": "2026-11-21T11:30:00+05:30"
+    }
+   ],
+   "trace": [
+    {
+     "n": 1,
+     "tool": "rating_prompt",
+     "status": "ok",
+     "ms": 80,
+     "args": "V-PUR",
+     "source": null,
+     "note": null
+    }
+   ],
+   "package_id": null
+  }
+ }
+}

@@ -1,0 +1,41 @@
+material_code,material_name,category,unit,specification
+MAT001,TMT Bar 8mm Fe500D,steel,mt,"IS 1786, 12 m length"
+MAT002,TMT Bar 10mm Fe500D,steel,mt,"IS 1786, 12 m length"
+MAT003,TMT Bar 12mm Fe500D,steel,mt,"IS 1786, 12 m length"
+MAT004,TMT Bar 16mm Fe500D,steel,mt,"IS 1786, 12 m length"
+MAT005,TMT Bar 20mm Fe500D,steel,mt,"IS 1786, 12 m length"
+MAT006,TMT Bar 25mm Fe500D,steel,mt,"IS 1786, 12 m length"
+MAT007,Binding Wire 18 Gauge,steel,kg,Annealed MS
+MAT008,MS Angle 50x50x5,steel,kg,IS 2062
+MAT009,Cement OPC 53 Grade,cement,bag,"IS 269, 50 kg bag"
+MAT010,Cement PPC,cement,bag,"IS 1489, 50 kg bag"
+MAT011,White Cement,cement,kg,For tile joints
+MAT012,Concrete Admixture (Plasticiser),cement,ltr,IS 9103
+MAT013,River Sand (Coarse),aggregate,cft,Zone II
+MAT014,Fine Sand (Plaster),aggregate,cft,Zone III
+MAT015,Stone Chips 20mm,aggregate,cft,IS 383
+MAT016,Stone Chips 10mm,aggregate,cft,IS 383
+MAT017,AAC Block 600x200x150,blocks,cum,IS 2185-3
+MAT018,AAC Block 600x200x100,blocks,cum,IS 2185-3
+MAT019,Fly Ash Brick 230x110x75,blocks,nos,IS 12894
+MAT020,Brushbond RFX Waterproof Coating,waterproofing,pack,15 kg + 5.088 kg pack
+MAT021,Nitobond SBR Bonding Agent,waterproofing,ltr,SBR latex
+MAT022,Conbextra GP2 Grout,waterproofing,bag,25 kg bag
+MAT023,CPVC Pipe 20mm SDR11,plumbing,m,"IS 15778, 3 m length"
+MAT024,CPVC Pipe 25mm SDR11,plumbing,m,"IS 15778, 3 m length"
+MAT025,UPVC SWR Pipe 110mm,plumbing,m,"IS 13592, 3 m length"
+MAT026,UPVC SWR Pipe 75mm,plumbing,m,"IS 13592, 3 m length"
+MAT027,Ball Valve 20mm Brass,plumbing,nos,Full bore
+MAT028,FR-LSH Copper Wire 2.5 sqmm,electrical,coil,"IS 694, 90 m coil"
+MAT029,FR-LSH Copper Wire 4 sqmm,electrical,coil,"IS 694, 90 m coil"
+MAT030,PVC Conduit Pipe 25mm,electrical,m,"IS 9537, 3 m length"
+MAT031,MCB Distribution Board 8-way,electrical,nos,Double door
+MAT032,Vitrified Tile 600x600,tiles,sqft,"Double charge, 9 mm"
+MAT033,Ceramic Wall Tile 300x450,tiles,sqft,"Glazed, 8 mm"
+MAT034,Tile Adhesive,tiles,bag,"20 kg bag, C2 type"
+MAT035,Wall Putty,paint,bag,"40 kg bag, white cement based"
+MAT036,Interior Emulsion Paint,paint,ltr,20 ltr bucket
+MAT037,Exterior Primer,paint,ltr,20 ltr bucket
+MAT038,Shuttering Plywood 12mm,formwork,sheet,"8x4 ft, film faced"
+MAT039,Cover Block 25mm,formwork,nos,"Concrete, for slab"
+MAT040,Door Frame Hardwood 4x2.5 in,carpentry,rft,"Sal wood, seasoned"

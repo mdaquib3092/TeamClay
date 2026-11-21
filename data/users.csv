@@ -1,0 +1,6 @@
+user_id,name,role,project_id,whatsapp,email,language
+U01,Sourav Mondal,site_engineer,PRJ-AMARA,+919000000101,u01@test.clay.local,bn
+U02,Rakesh Yadav,site_engineer,PRJ-AQUINA,+919000000102,u02@test.clay.local,hi
+U03,Debashis Ghosh,project_manager,PRJ-AMARA,+919000000201,u03@test.clay.local,bn
+U04,Anirban Sen,project_manager,PRJ-AQUINA,+919000000202,u04@test.clay.local,en
+U05,Vikram Bose,hod,ALL,+919000000401,u05@test.clay.local,hi

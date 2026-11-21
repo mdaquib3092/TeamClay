@@ -1,0 +1,16 @@
+vendor_id,vendor_name,category,whatsapp,email,payment_terms
+V01,Eastern Rebar Traders,steel,+919000100001,v01@test.clay.local,15 days credit
+V02,Shree Balaji Steel Agency,steel,+919000100002,v02@test.clay.local,Advance
+V03,Howrah Iron & Steel Co.,steel,+919000100003,v03@test.clay.local,30 days credit
+V04,Bengal Structural Supplies,steel,+919000100004,v04@test.clay.local,7 days credit
+V05,New Town Cement Depot,cement,+919000100005,v05@test.clay.local,15 days credit
+V06,Salt Lake Building Materials,cement;aggregate,+919000100006,v06@test.clay.local,Advance
+V07,Rajarhat Traders,cement;blocks,+919000100007,v07@test.clay.local,7 days credit
+V08,Ganga Sand & Chips Suppliers,aggregate,+919000100008,v08@test.clay.local,On delivery
+V09,Sunrise AAC Blocks,blocks,+919000100009,v09@test.clay.local,15 days credit
+V10,Chemfix Waterproofing Distributors,waterproofing,+919000100010,v10@test.clay.local,15 days credit
+V11,City Plumbing Mart,plumbing,+919000100011,v11@test.clay.local,15 days credit
+V12,Lumen Electricals,electrical,+919000100012,v12@test.clay.local,30 days credit
+V13,Kolkata Tile House,tiles,+919000100013,v13@test.clay.local,15 days credit
+V14,Rangoli Paints & Hardware,paint;carpentry,+919000100014,v14@test.clay.local,7 days credit
+V15,Prime Formwork Supplies,formwork,+919000100015,v15@test.clay.local,Advance
