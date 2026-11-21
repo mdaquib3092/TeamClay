@@ -1,10 +1,19 @@
 # Live RFQ desk
 
+- Public dashboard: <https://clay-procurement.teamclay-d326e1.workers.dev/>.
+  Anyone can run all six steps and edit sample quotations without signing in.
+  `/` and `/demo/` run entirely on Cloudflare with fictional supplier records;
+  they do not require the bridge Mac. `/activity` shows anonymous aggregate
+  live status without any case identifiers, contact details, quotes or messages.
+
 - Hosted owner desk: <https://clay-procurement.teamclay-d326e1.workers.dev/desk/#live-cases>
-- A live case’s **Open PM dashboard approval** button opens `/pm/<case-id>/`.
-  The assigned PM enters their registered WhatsApp number, verifies a one-time
-  code, reviews the complete individual Gmail drafts and selects **Approve & send**.
-  Merely opening the page or verifying the code does not dispatch anything.
+- The assigned PM taps the private review link sent directly to their current
+  registered WhatsApp. No login, code or phone-number entry is required. They
+  review the individual Gmail drafts and select **Approve & send**. Opening a
+  link does not dispatch anything. A link is scoped to one case, contact and
+  BOQ revision; its first exchange creates a session for that browser. If it
+  expires or the roster changes, the PM can send `REVIEWLINK <case-id>` from
+  their registered WhatsApp for a fresh one.
 - Email is sent by the case worker; the PM does not share Gmail credentials.
   Incoming replies must be from the reviewed address in that RFQ's Gmail thread.
   Two comparable replies automatically generate the HOD's WhatsApp comparison.
@@ -54,7 +63,7 @@ bridge host. **That host and the local services must remain running.**
 
 The Worker verifies the owner’s Cloudflare Access JWT for `/desk`, including
 its signature, issuer, audience and allowed email. The public PM page discloses
-no case data before verification; the verification, session and dispatch are
+no case data without the private invitation; the invitation, session and dispatch are
 bound to the current project, PM identity, phone, BOQ revision and exact drafts.
 Use the host's private `origin.key` as the Worker `ORIGIN_KEY` secret; set
 `OWNER_EMAIL` as a secret; bind `PRIVATE_ORIGIN` to the named tunnel. Configure

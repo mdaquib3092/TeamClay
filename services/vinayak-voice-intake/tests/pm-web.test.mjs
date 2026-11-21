@@ -6,35 +6,43 @@ import {PmApproval} from "../src/cloud/pm-approval.mjs";
 
 async function setup(t){
   const f=rehearsal();t.after(()=>f.close());
+  const pm=new PmApproval(f.flow,{users:()=>f.users,secret:"fixture-key"});
+  f.flow.pmLinks=pm;
   const id=(await f.command(f.site,SAMPLE)).match(/CASE-[A-F0-9]+/)[0];
-  let code,deliveries=0;
-  const pm=new PmApproval(f.flow,{users:()=>f.users,secret:"test-only-key",sendCode:async(u,text)=>{
-    assert.equal(u.user_id,f.pm.user_id);code=text.match(/code: (\d{8})/)[1];deliveries++;
-  }});
-  return {f,pm,id,code:()=>code,sends:()=>deliveries};
+  await f.flush();
+  const [invitation]=f.alerts;assert.equal(invitation.role,"project_manager");
+  const token=invitation.text.match(/#review=([a-f0-9]{64})/)[1];
+  return {f,pm,id,token};
 }
-test("only the assigned PM can use an OTP to review the exact vendor emails and queue a single web dispatch",async t=>{
-  const {f,pm,id,code,sends}=await setup(t);
-  await assert.rejects(pm.challenge(id,f.site.whatsapp),/assigned PM/);assert.equal(sends(),0);
-  const challenge=await pm.challenge(id,f.pm.whatsapp);
-  await assert.rejects(pm.challenge(id,f.pm.whatsapp),/Wait a minute/);
-  assert.throws(()=>pm.verify(id,challenge,"invalid"),/incorrect/);
-  const session=pm.verify(id,challenge,code());
-  assert.throws(()=>pm.verify(id,challenge,code()),/incorrect/);
-  assert.throws(()=>pm.view(id,challenge),/Verify/);
-  const view=pm.view(id,session);assert.deepEqual(view.drafts.map(d=>d.id),["V05","V06"]);
-  assert.equal(f.emails.length,0);assert.equal(sends(),1);
+test("private WhatsApp link opens the PM's reviewed drafts without a login code and can dispatch exactly once",async t=>{
+  const {f,pm,id,token}=await setup(t);
+  for(const [table,col] of [["wa_flow_outbox","payload"],["messages","body"],["wa_pm_review_links","id"]]){
+    assert.equal(f.flow.one(`SELECT count(*) n FROM ${table} WHERE instr(${col},?)>0`,token).n,0);
+  }
+  assert.throws(()=>pm.issue(id,1,f.site),/assigned PM/);
+  assert.throws(()=>pm.view(id,token),/assigned PM/);
+  assert.throws(()=>pm.exchange(id,"0".repeat(64)),/assigned PM/);
+  const session=pm.exchange(id,token);
+  assert.throws(()=>pm.exchange(id,token),/assigned PM/);
+  const view=pm.view(id,session);assert.deepEqual(view.drafts.map(v=>v.id),["V05","V06"]);
+  assert.equal(f.emails.length,0);
   const input={revision:1,confirm:true,snapshot:view.snapshot};
   assert.throws(()=>pm.approve(id,session,{...input,confirm:false}),/Read the current/);
-  pm.approve(id,session,input);
-  assert.throws(()=>pm.approve(id,session,input),/already confirmed/);
+  pm.approve(id,session,input);assert.throws(()=>pm.approve(id,session,input),/already confirmed/);
   await f.flush();assert.deepEqual(f.emails.map(m=>m.text),view.drafts.map(v=>v.text));
   assert.equal(f.flow.one("SELECT decided_via FROM approvals WHERE requirement_id=?",id).decided_via,"web");
 });
-test("a changed PM phone or BOQ invalidates a previously authenticated approval",async t=>{
-  const {f,pm,id,code}=await setup(t);const target=await pm.challenge(id,f.pm.whatsapp),session=pm.verify(id,target,code());
-  const v=pm.view(id,session);await f.command(f.site,`CORRECT ${id} B1 | MAT010 120 bags | Tower 2 | need +14 | reply +3`);
-  assert.throws(()=>pm.approve(id,session,{confirm:true,revision:v.revision,snapshot:v.snapshot}),/current BOQ/);
-  f.pm.whatsapp="+12025550199";assert.throws(()=>pm.view(id,session),/Verify/);
+test("a PM-requested replacement is case and revision bound and revokes earlier links",async t=>{
+  const {f,pm,id,token}=await setup(t);
+  assert.match(await f.command(f.site,`REVIEWLINK ${id}`),/Only the assigned PM/);
+  assert.match(await f.command(f.pm,`REVIEWLINK ${id}`),/queued/);await f.flush();
+  const replacement=f.alerts.at(-1).text.match(/#review=([a-f0-9]{64})/)[1];
+  assert.throws(()=>pm.exchange(id,token),/assigned PM/);
+  assert.match(await f.command(f.pm,`REVIEWLINK ${id}`),/already requested/);
+  const session=pm.exchange(id,replacement);pm.view(id,session);
+  f.pm.whatsapp="+12025550199";assert.throws(()=>pm.view(id,session),/assigned PM/);
+  const renewed=pm.issue(id,1,f.pm);
+  await f.command(f.site,`CORRECT ${id} B1 | MAT010 120 bags | Tower 2 | need +14 | reply +3`);
+  assert.throws(()=>pm.exchange(id,renewed),/assigned PM/);
   await f.flush();assert.equal(f.emails.length,0);
 });

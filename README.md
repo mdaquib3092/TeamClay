@@ -1,6 +1,7 @@
 # Clay
 
-**[Open the deployed Live RFQ desk](https://clay-procurement.teamclay-d326e1.workers.dev/desk/#live-cases)** ·
+**[Open the public RFQ dashboard](https://clay-procurement.teamclay-d326e1.workers.dev/)** ·
+[Live activity](https://clay-procurement.teamclay-d326e1.workers.dev/activity) ·
 [Setup, dashboard approvals and the three walkthroughs](docs/live-deployment.md).
 
 Clay is a hackathon procurement app for construction sites. Site engineers raise material needs, Clay checks stock, sends RFQs to vendors, ranks the replies, and routes the pick to the PM and HOD for approval.

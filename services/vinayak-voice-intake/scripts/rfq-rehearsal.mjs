@@ -11,7 +11,7 @@ export const sampleQuotes = samples[0].replies;
 // Uses the real schema/template only. All individual identities, messages and
 // transactions below are fixtures in an isolated directory and in-memory DB.
 export function rehearsal(config = {}) {
-  const master = config.root || process.env.TEAMCLAY_ROOT || path.join(os.homedir(), "Downloads/TeamClay");
+  const master = config.root || config.templateRoot || process.env.TEAMCLAY_ROOT || path.join(os.homedir(), "Downloads/TeamClay");
   const root = config.root || fs.mkdtempSync(path.join(os.tmpdir(), "rfq-rehearsal-"));
   if (!config.root) {
     fs.mkdirSync(path.join(root,"data")); fs.mkdirSync(path.join(root,"templates"));

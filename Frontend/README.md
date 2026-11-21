@@ -42,6 +42,12 @@ authentication must be implemented before multi-user/public deployment.
 
 ## Connected workflow
 
+The [public dashboard](https://clay-procurement.teamclay-d326e1.workers.dev/)
+opens without a login. Visitors can edit sample vendor replies, compare landed
+costs, record a simulated HOD decision, and view aggregate live activity. For
+real RFQs the assigned PM's WhatsApp review message includes a private one-tap
+link. A phone number, password or verification code is not required on that page.
+
 **Live RFQ desk:** open <http://127.0.0.1:5174/#live-cases>. Choose **Cement**,
 **Steel** or **Waterproofing**, click **Run sample**, and step through the exact
 engineer message, generated RFQs, PM confirmation, individual vendor replies,

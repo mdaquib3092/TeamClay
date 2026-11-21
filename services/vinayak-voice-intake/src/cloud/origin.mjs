@@ -16,12 +16,7 @@ const secret=fs.readFileSync(path.join(os.homedir(),"Library/Application Support
 const flow=new CaseFlow({root,recoverOutbox:false});
 const chat=new DatabaseSync(path.join(root,"data/voice_notes/voice-notes.sqlite"),{readOnly:true});
 const pm=new PmApproval(flow,{users:()=>loadUsers(path.join(root,"data/users.csv")),secret,
-  paused:id=>!!chat.prepare("SELECT paused FROM chat_preferences WHERE user_id=?").get(id)?.paused,
-  sendCode:async (user,message)=>{
-    const res=await fetch("http://127.0.0.1:8080/api/send",{method:"POST",redirect:"error",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({recipient:user.whatsapp.slice(1),message}),signal:AbortSignal.timeout(45000)});
-    if(!res.ok||(await res.json()).success!==true)throw Error("WhatsApp not confirmed");
-  }});
+  paused:id=>!!chat.prepare("SELECT paused FROM chat_preferences WHERE user_id=?").get(id)?.paused});
 const deskRead=/^\/(?:api\/(?:integration|workspace|source|sources|capabilities|export)|local-api\/(?:catalog|status|roles|messages|voice-notes|procurement\/(?:cases|samples\/(?:cement|steel|waterproofing))))$/;
 const deskWrite=/^\/api\/(?:integration|actions|extract)$/;
 const json=(res,status,data,headers={})=>{res.writeHead(status,{"Content-Type":"application/json","Cache-Control":"no-store",...headers});res.end(JSON.stringify(data));};
@@ -42,19 +37,27 @@ const server=http.createServer(async(req,res)=>{
   try{
     if(!same(req.headers["x-clay-origin"],secret))return json(res,403,{error:"Private origin."});
     const url=new URL(req.url,"http://127.0.0.1:8791"),route=url.pathname;
+    if(route==="/public-progress"&&req.method==="GET"){
+      const counts=flow.one(`SELECT
+        (SELECT COUNT(*) FROM wa_flow_cases) cases,
+        (SELECT COUNT(*) FROM wa_flow_cases WHERE stage='BOQ_REVIEW') pending,
+        (SELECT COUNT(*) FROM wa_flow_mail WHERE gmail_id IS NOT NULL) emails,
+        (SELECT COUNT(*) FROM (SELECT DISTINCT case_id,vendor_id FROM wa_flow_replies)) replies,
+        (SELECT COUNT(*) FROM wa_flow_outbox WHERE role='hod' AND kind='whatsapp' AND state='accepted' AND id LIKE '%:quote:%:hod') reports`);
+      return json(res,200,{...counts,at:new Date().toISOString()});
+    }
     if(route==="/healthz"&&req.method==="GET"){
       const [b,a,d]=await Promise.all([fetch("http://127.0.0.1:8766/status").then(r=>r.json()),fetch("http://127.0.0.1:8767/api/status").then(r=>r.json()),
         fetch(local+"/api/integration",{headers:{cookie:await authorisedLocalWorkspace()},signal:AbortSignal.timeout(6500)})]);
       await d.body?.cancel();const ok=b.phase==="connected"&&a.caseWorkflow?.enabled===true&&d.ok;return json(res,ok?200:503,{ready:ok});
     }
-    const m=/^\/pm\/(CASE-[A-F0-9]{12})\/(challenge|verify|review|approve)$/.exec(route);
+    const m=/^\/pm\/(CASE-[A-F0-9]{12})\/(open|review|approve)$/.exec(route);
     if(m){
       const [,id,op]=m,s=cookie("__Secure-clay-session",req.headers.cookie);
       if(op==="review"&&req.method==="GET")return json(res,200,pm.view(id,s));
       if(req.method!=="POST"||req.headers["content-type"]?.split(";")[0]!=="application/json")return json(res,405,{error:"Use the approval form."});
       let data;try{data=JSON.parse(await collect(req,4200));}catch{return json(res,400,{error:"Invalid request."});}
-      if(op==="challenge"){const t=await pm.challenge(id,data.phone);return json(res,200,{sent:true},{"Set-Cookie":pmCookie("challenge",t,id,300)});}
-      if(op==="verify"){const t=pm.verify(id,cookie("__Secure-clay-challenge",req.headers.cookie),data.code);return json(res,200,{verified:true},{"Set-Cookie":[pmCookie("session",t,id,600),pmCookie("challenge","",id,0)]});}
+      if(op==="open"){const t=pm.exchange(id,data?.link);return json(res,200,{opened:true},{"Set-Cookie":pmCookie("session",t,id,3600)});}
       if(op==="approve")return json(res,200,pm.approve(id,s,data));
       return json(res,405,{error:"Not supported."});
     }

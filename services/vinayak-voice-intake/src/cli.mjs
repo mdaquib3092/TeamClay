@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import os from "node:os";
 import { randomUUID } from "node:crypto";
 import { parseArgs } from "node:util";
 import { setTimeout as delay } from "node:timers/promises";
@@ -7,6 +8,7 @@ import { loadConfig, loadUsers } from "./config.mjs";
 import { VoiceIntake } from "./intake.mjs";
 import { createServer } from "./server.mjs";
 import { CaseFlow } from "./procurement/flow.mjs";
+import { PmApproval } from "./cloud/pm-approval.mjs";
 import { RfqMailbox } from "./procurement/mail.mjs";
 import { readJson } from "./sarvam.mjs";
 
@@ -64,8 +66,11 @@ try {
             headers:{"Content-Type":"application/json"}, body:JSON.stringify({recipient:recipient.whatsapp.slice(1),message}) });
           const result = await readJson(r);
           if(!r.ok || result.success!==true) throw new Error("WhatsApp acceptance unconfirmed");
-          return {accepted:true};
+          return {accepted:true,numberEnding:recipient.whatsapp.slice(-4)};
         } });
+      const secretFile=path.join(os.homedir(),"Library/Application Support/TeamClay/Cloudflare/origin.key");
+      if(fs.existsSync(secretFile))intake.workflow.pmLinks=new PmApproval(intake.workflow,{
+        users:()=>loadUsers(config.usersCsv), secret:fs.readFileSync(secretFile,"utf8").trim(),paused:intake.workflow.pauseCheck});
       if (!intake.setting("case_flow_activated")) intake.setSetting("case_flow_activated",new Date().toISOString());
     }
     server = createServer(intake, config.port);

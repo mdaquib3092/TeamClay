@@ -1,4 +1,5 @@
-// FILES and PM_PAGE are injected from the production build during MCP upload.
+import {publicDesk,activityPage} from "./public-desk.mjs";
+// FILES, PM_PAGE and isolated PUBLIC_SAMPLES are injected during MCP upload.
 const ORIGIN="http://127.0.0.1:8791", HOST="clay-procurement.teamclay-d326e1.workers.dev";
 const ISS="https://teamclay-d326e1.cloudflareaccess.com", AUD="37bf7443167d110bdf159c20a997eb046615b80bc122e4024fea673d015aab47";
 const deskRead=/^\/(?:api\/(?:integration|workspace|source|sources|capabilities|export)|local-api\/(?:catalog|status|roles|messages|voice-notes|procurement\/(?:cases|samples\/(?:cement|steel|waterproofing))))$/;
@@ -7,6 +8,7 @@ const headers={"cache-control":"private,no-store","x-content-type-options":"nosn
 const htmlHeaders={...headers,"content-type":"text/html; charset=utf-8","content-security-policy":"default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"};
 function bytes(s){return Uint8Array.from(atob(s.replace(/-/g,"+").replace(/_/g,"/")),c=>c.charCodeAt(0));}
 let cached;
+let activity;
 async function owner(request,env){
   try{
     const token=request.headers.get("Cf-Access-Jwt-Assertion")||"";
@@ -26,7 +28,7 @@ async function owner(request,env){
 function fail(status,error){return Response.json({error},{status,headers});}
 async function origin(request,env,target,pm=false){
   const h=new Headers({"x-clay-origin":env.ORIGIN_KEY});
-  if(pm){const cookies=(request.headers.get("cookie")||"").split(";").map(s=>s.trim()).filter(s=>/^__Secure-clay-(?:challenge|session)=[a-f0-9]{64}$/.test(s));h.set("cookie",cookies.join("; "));}
+  if(pm){const cookies=(request.headers.get("cookie")||"").split(";").map(s=>s.trim()).filter(s=>/^__Secure-clay-session=[a-f0-9]{64}$/.test(s));h.set("cookie",cookies.join("; "));}
   if(request.headers.has("content-type"))h.set("content-type",request.headers.get("content-type"));
   const reply=await env.PRIVATE_ORIGIN.fetch(ORIGIN+target,{method:request.method,headers:h,body:request.method==="POST"?request.body:undefined,redirect:"manual"});
   const output=new Headers(headers);for(const k of ["content-type","content-disposition"])if(reply.headers.has(k))output.set(k,reply.headers.get(k));
@@ -39,7 +41,13 @@ export default {async fetch(request,env){
     if(!["GET","POST","HEAD"].includes(request.method))return fail(405,"Method not allowed.");
     const p=u.pathname;
     if(request.method==="POST"&&(request.headers.get("origin")!==u.origin||request.headers.get("sec-fetch-site")==="cross-site"))return fail(403,"Submit from the Clay dashboard.");
-    if(p==="/"&&request.method==="GET")return Response.redirect(u.origin+"/desk/#live-cases",302);
+    if(p==="/"||p==="/demo"||p.startsWith("/demo/"))return await publicDesk(request,u,PUBLIC_SAMPLES);
+    if(p==="/activity"&&["GET","HEAD"].includes(request.method)){
+      if(!activity||Date.now()>=activity.until)activity={until:Date.now()+15000,
+        data:env.PRIVATE_ORIGIN.fetch(ORIGIN+"/public-progress",{headers:{"x-clay-origin":env.ORIGIN_KEY},signal:AbortSignal.timeout(4500)})
+          .then(r=>r.ok?r.json():null).catch(()=>null)};
+      return activityPage(request,await activity.data);
+    }
     if(p==="/healthz"&&request.method==="GET")return origin(request,env,"/healthz");
     // This unauthenticated shell contains no vendor/case information. All data
     // and mutations on its API require the case-bound PM verification session.
@@ -49,11 +57,11 @@ export default {async fetch(request,env){
       return new Response(PM_PAGE.replace('id="pm-script"',`id="pm-script" nonce="${nonce}"`),{headers:{...htmlHeaders,
         "content-security-policy":`default-src 'none'; script-src 'nonce-${nonce}'; style-src 'unsafe-inline'; connect-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'`}});
     }
-    const m=/^\/pm\/CASE-[A-F0-9]{12}\/(challenge|verify|review|approve)$/.exec(p);
+    const m=/^\/pm\/CASE-[A-F0-9]{12}\/(open|review|approve)$/.exec(p);
     if(m){
       if(u.search||(m[1]==="review"?request.method!=="GET":request.method!=="POST"))return fail(405,"Use the PM review form.");
       if(request.method==="POST"&&Number(request.headers.get("content-length")||0)>4200)return fail(413,"Submission too large.");
-      if(["challenge","verify"].includes(m[1])&&env.LOGIN_LIMIT&&!(await env.LOGIN_LIMIT.limit({key:request.headers.get("cf-connecting-ip")||"unknown"})).success)return fail(429,"Try again in a minute.");
+      if(m[1]==="open"&&env.LOGIN_LIMIT&&!(await env.LOGIN_LIMIT.limit({key:request.headers.get("cf-connecting-ip")||"unknown"})).success)return fail(429,"Try again in a minute.");
       return origin(request,env,p,true);
     }
     if(p!=="/desk"&&!p.startsWith("/desk/"))return fail(404,"Not found.");

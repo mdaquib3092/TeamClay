@@ -15,7 +15,7 @@ const member = (users, id) => [...users.values()].find(u => u.user_id === id);
 const minimum = c => c.demo ? 2 : ROLE_POLICY.controls.minimumEligibleRfqVendors;
 const allowed = (u, c) => scopeOK(u, c) && ((u.role === "site_engineer" && u.user_id === c.owner_id) ||
   (u.role === "project_manager" && u.user_id === c.pm_id) || (u.role === "hod" && u.user_id === c.hod_id));
-const commands = /^(?:(?:DEMO\s+)?RFQ(?:\s*\||\s+HELP\b|$)|(?:PREVIEW|SEND|STATUS|RECOMMEND|APPROVE|RETURN|CORRECT)\s+CASE-)/i;
+const commands = /^(?:(?:DEMO\s+)?RFQ(?:\s*\||\s+HELP\b|$)|(?:PREVIEW|REVIEWLINK|SEND|STATUS|RECOMMEND|APPROVE|RETURN|CORRECT)\s+CASE-)/i;
 const parse = r => r && ({ ...r, scope: JSON.parse(r.scope_json) });
 const clip = (s, n = 120) => String(s).replace(/\s+/g, " ").slice(0, n);
 function assigned(users, role, project) {
@@ -142,6 +142,14 @@ export class CaseFlow {
         let c = initial && this.get(id), reply;
         if (isNew) ({ c, reply } = this.create(msg, user, users, parts.slice(1), /^DEMO/i.test(parts[0])));
         else if (verb === "STATUS") reply = this.statusText(c, user);
+        else if (verb === "REVIEWLINK") {
+          check(user.role==="project_manager"&&msg.channel==="text"&&c.stage==="BOQ_REVIEW","Only the assigned PM can request a link for a pending BOQ.");
+          check(!!this.pmLinks,"Online review links are not configured. Use the displayed SEND command.");
+          const recent=this.one("SELECT 1 FROM wa_flow_outbox WHERE case_id=? AND id LIKE ? AND created>? LIMIT 1",id,`${id}:requested-link:%`,new Date(Date.now()-60000).toISOString());
+          check(!recent,"A private review link was already requested in the last minute.");
+          this.notify(c,`requested-link:${msg.id}`,"project_manager","Here is your requested private RFQ review.",null,"BOQ_REVIEW");
+          reply=`${id}: a fresh review link is queued for this WhatsApp conversation.`;
+        }
         else if (verb === "PREVIEW") {
           check(["project_manager","hod"].includes(user.role) && words[0]===`B${c.boq_rev}`, "Use the current BOQ revision from the assigned PM or HOD number.");
           const v=c.scope.vendors.find(v=>v.id===words[1]);
@@ -278,10 +286,16 @@ export class CaseFlow {
     }
     if(!this.run("UPDATE wa_flow_outbox SET state='sending',attempted=? WHERE id=? AND state='queued'",now(),o.id).changes)return;
     try{
-      const receipt=o.kind==="email"?await this.mailbox.send(p):await this.sendStaff(recipient,p.text);
+      let text=p.text;
+      if(this.pmLinks&&o.kind==="whatsapp"&&o.role==="project_manager"&&o.required_stage==="BOQ_REVIEW"){
+        const token=this.pmLinks.issue(c.id,c.boq_rev,recipient);
+        text+=`\n\nReview and approve on the dashboard:\nhttps://clay-procurement.teamclay-d326e1.workers.dev/pm/${c.id}/#review=${token}\nThis link is for you. Tap it to review the drafts; opening it does not send an RFQ.`;
+      }
+      const receipt=o.kind==="email"?await this.mailbox.send(p):await this.sendStaff(recipient,text);
       if(o.kind==="email"&&(!receipt?.sent||!receipt.threadId||!receipt.messageId))throw new Error("unconfirmed Gmail send");
       this.tx(()=>{
         this.run("UPDATE wa_flow_outbox SET state='accepted',accepted=?,receipt=? WHERE id=?",now(),JSON.stringify(receipt),o.id);
+        // p.text is the audit copy; it never contains the private URL fragment.
         this.event(c,o.kind,"outbound","agent",o.target,{outbox:o.id,body:p.text,subject:p.subject,receipt},"accepted");
         if(o.kind==="email"){
           this.run("UPDATE wa_flow_mail SET gmail_id=?,thread_id=? WHERE case_id=? AND vendor_id=?",receipt.messageId,receipt.threadId,c.id,o.target);

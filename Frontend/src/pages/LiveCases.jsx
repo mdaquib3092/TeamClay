@@ -58,7 +58,7 @@ function CaseAction({c,board}) {
     const enough=c.vendors.length >= (c.demo ? board.demoMinimum : board.standardMinimum);
     const cmd=`SEND ${c.id} B${c.boqRev} ${c.vendors.map(v=>v.id).join(" ")}`;
     return <section><h3>{staffName(board,c.pm)} · PM review</h3><p>{enough?"Review the drafts below. Send this confirmation from the registered PM WhatsApp to email these recipients.":"This segment needs more eligible vendors before dispatch."}</p>
-      {enough&&<p><a className="btn primary" href={`https://clay-procurement.teamclay-d326e1.workers.dev/pm/${encodeURIComponent(c.id)}/`} target="_blank" rel="noreferrer">Open PM dashboard approval</a></p>}
+      {enough&&<div><p>The assigned PM’s WhatsApp review message includes a private, one-tap approval link. To request a fresh link from the PM’s own WhatsApp:</p><Draft board={board} text={`REVIEWLINK ${c.id}`} label="Request PM review link"/></div>}
       {enough&&<><pre>{cmd}</pre><Draft board={board} text={cmd}/></>}</section>;
   }
   if(!["COMPARISON","WITH_HOD"].includes(c.stage))return null;
