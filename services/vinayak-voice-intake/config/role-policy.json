@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "staffRoles": {
+    "site_engineer": {
+      "label": "Site engineer",
+      "purpose": "Submit the site requirement and BOQ, answer technical corrections and track the case.",
+      "scope": "own_cases_in_assigned_project",
+      "workQueue": "requirement_intake",
+      "nextOwner": "project_manager",
+      "allowedActions": ["submit_requirement", "attach_boq", "answer_correction", "view_own_case", "view_issued_work_order"],
+      "requiredDetails": ["case reference for an existing request", "project and site location", "BOQ descriptions, quantities and units", "technical specifications", "required-by date", "source documents where available"],
+      "prohibitedActions": ["review_boq", "confirm_erp_mapping", "dispatch_rfq", "submit_recommendation", "approve_recommendation", "verify_vendor_as_accounts", "sign_work_order", "release_work_order"]
+    },
+    "project_manager": {
+      "label": "Project manager / procurement coordinator",
+      "purpose": "Perform the procurement-team coordination tasks for the assigned project without approving their own recommendation.",
+      "scope": "assigned_project",
+      "workQueue": "procurement_coordination",
+      "nextOwner": "hod",
+      "allowedActions": ["review_boq", "request_correction", "confirm_erp_mapping", "propose_erp_item", "record_vendor_eligibility", "prepare_rfq", "dispatch_rfq", "record_quotation", "request_vendor_clarification", "record_negotiation", "prepare_comparison", "submit_recommendation", "record_external_accounts_evidence", "prepare_work_order", "record_external_signature_evidence", "release_work_order", "view_project_case"],
+      "requiredDetails": ["procurement case reference", "current BOQ revision and correction status", "ERP mapping and duplicate/new-item decisions", "at least three eligible RFQ recipients", "quote source, rates, GST, payment, delivery and exclusions", "comparison, negotiation evidence and recommendation rationale"],
+      "prohibitedActions": ["approve_recommendation", "approve_own_recommendation", "verify_vendor_as_accounts", "create_item_in_live_erp", "sign_work_order", "make_payment"]
+    },
+    "hod": {
+      "label": "HOD / management",
+      "purpose": "Review the current recommendation, vendor, scope and rates; explicitly approve or request changes through the agreed human approval route.",
+      "scope": "configured_projects_or_all",
+      "workQueue": "management_review",
+      "nextOwner": "project_manager",
+      "allowedActions": ["view_management_case", "review_recommendation", "approve_recommendation", "request_recommendation_changes", "reject_recommendation", "review_work_order"],
+      "requiredDetails": ["procurement case reference", "current recommendation and BOQ revision", "recommended vendor and reviewed rates", "comparison, exclusions and commercial deviations", "human decision and review note"],
+      "prohibitedActions": ["approve_by_inferred_voice_intent", "approve_superseded_recommendation", "verify_vendor_as_accounts", "sign_work_order_without_separate_signatory_assignment", "make_payment"]
+    }
+  },
+  "workflow": [
+    {"step": 1, "id": "requirement_capture", "owner": "site_engineer", "description": "Submit requirement and BOQ through the form, email or WhatsApp.", "gate": "Extracted voice and document values require human review."},
+    {"step": 2, "id": "boq_and_erp_review", "owner": "project_manager", "description": "Review BOQ, obtain corrections and resolve ERP mappings, duplicates and proposed new items.", "gate": "A proposed item is not a live ERP item creation."},
+    {"step": 3, "id": "rfq_dispatch", "owner": "project_manager", "description": "Send the current reviewed BOQ and RFQ to at least three eligible vendors.", "gate": "Require at least three distinct evidenced eligible vendors and an explicit dispatch confirmation."},
+    {"step": 4, "id": "quotation_receipt", "owner": "external_vendor", "description": "Vendors return quotations, normally through email.", "gate": "Missing rates, GST, payment terms, delivery or exclusions remain unresolved."},
+    {"step": 5, "id": "comparison_and_recommendation", "owner": "project_manager", "description": "Compare the same scope, consider evidenced vendor history, record negotiations and recommend.", "gate": "No invented vendor history or silent scope/unit conversions."},
+    {"step": 6, "id": "management_decision", "owner": "hod", "description": "Review and explicitly approve vendor and rates, or request changes.", "gate": "Bind the human decision to the current vendor, rates, scope and recommendation revision."},
+    {"step": 7, "id": "vendor_verification_and_work_order_draft", "owner": "project_manager_with_external_accounts", "description": "Record accounts verification/registration evidence and prepare a draft work order.", "gate": "The project manager records external evidence; they do not impersonate accounts or certify banking information."},
+    {"step": 8, "id": "signed_work_order_and_execution", "owner": "external_authorised_signatory_then_project_manager", "description": "Obtain authorised approval/signature, then issue the signed order to vendor and site and track execution.", "gate": "HOD status alone does not confer signature authority. Never send an unsigned work order as an order."}
+  ],
+  "controls": {
+    "minimumEligibleRfqVendors": 3,
+    "minimumReviewedComparableQuotations": 2,
+    "procurementCoordinatorRole": "project_manager",
+    "vendorCommunication": "email",
+    "caseReferenceRequiredForWorkflowActions": true,
+    "voiceApprovalIsNoteOnly": true,
+    "approveRecommendationDoesNotIssueOrder": true,
+    "separateAccountsEvidenceRequired": true,
+    "separateSignatoryAssignmentRequired": true,
+    "automaticReplies": false,
+    "liveCommercialActions": false
+  }
+}

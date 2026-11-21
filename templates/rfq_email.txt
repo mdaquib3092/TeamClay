@@ -1,0 +1,26 @@
+To: ${vendor_name} <${vendor_email}>
+Subject: RFQ · ${requirement_id} · ${item_summary} · ${project_name}
+
+Dear ${contact_name},
+
+${organisation} requests your best quotation for:
+
+${requirement_lines}
+
+Delivery to: ${delivery_address}
+Needed by: ${needed_by}
+
+Please reply to this email with:
+• Rate per unit, ex-GST
+• Freight, if any
+• Delivery days
+• Payment terms
+
+Please quote the exact grade asked for. If you can only offer a different grade, say so clearly.
+
+Reply by: ${reply_deadline}
+
+Regards,
+${sender_name}
+${sender_role}, ${project_name}
+${organisation}

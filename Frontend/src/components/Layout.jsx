@@ -2,9 +2,9 @@ import { useStore } from "../store.jsx";
 import { USERS, repliedVendors } from "../data.js";
 
 export const NAV = {
-  PM: [["pm-inbox", "Inbox"], ["pm-outbox", "Outbox"], ["pm-list", "Requests"]],
-  HOD: [["hod-list", "Approvals"]],
-  Admin: [["admin-data", "Data upload"], ["admin-vendors", "Vendors"], ["admin-stock", "Stock"], ["admin-integrations", "Integrations"], ["admin-log", "Activity log"]],
+  PM: [["live-cases","Live RFQ desk"],["pm-inbox", "Inbox"], ["pm-outbox", "Outbox"], ["pm-list", "Requests"], ["pm-workflow", "Procurement workflow"]],
+  HOD: [["live-cases","Live RFQ desk"],["hod-list", "Approvals"]],
+  Admin: [["live-cases","Live RFQ desk"],["admin-data", "Source data"], ["admin-vendors", "Vendors"], ["admin-stock", "Stock"], ["admin-integrations", "Integrations"], ["admin-agent", "Agent inbox"], ["admin-log", "Activity log"]],
 };
 
 function useBadges() {
@@ -19,7 +19,7 @@ function useBadges() {
 }
 
 export default function Layout({ page, title, children }) {
-  const { user, dispatch } = useStore();
+  const { user, dispatch, payload, error, busy, clearError, reload } = useStore();
   const u = USERS[user], badges = useBadges();
   return (
     <div className="app">
@@ -31,13 +31,18 @@ export default function Layout({ page, title, children }) {
               {l}{badges[k] ? <span className="badge">{badges[k]}</span> : null}
             </a>))}
         </div>
-        <div className="who"><b>{u.name}</b> · {u.role}
-          <div className="muted">{u.role === "PM" ? "Vinayak " + u.project : u.project}</div>
-          <button className="link small" onClick={() => { dispatch({ type: "logout" }); location.hash = "login"; }}>Switch user</button></div>
+        <div className="who"><b>{payload.identity.name}</b>
+          <div className="muted">{u.name} view · owner-private session</div>
+          <button className="link small" onClick={() => { dispatch({ type: "logout" }); location.hash = "login"; }}>Switch view</button></div>
       </nav>
       <main className="main">
-        <div className="top"><h1>{title}</h1><span className="demo">Demo data</span></div>
-        <div className="content">{children}</div>
+        <div className="top"><h1>{title}</h1>{page==="live-cases" ? <span className="demo">TeamClay · local workspace</span> : <div className="inline"><button className="btn" disabled={busy} onClick={reload}>Refresh</button><span className="demo">Saved revision {payload.workspace.revision}</span></div>}</div>
+        <div className="content">
+          {page!=="live-cases" && <div className="notice" style={{ marginBottom: 16 }}>This workspace uses internal test inboxes. Track PM-confirmed Gmail RFQs, vendor replies and HOD WhatsApp decisions in the <a href="#live-cases">Live RFQ desk</a>.</div>}
+          {error && <div className="notice err" role="alert">{error} <button className="link" onClick={clearError}>Dismiss</button></div>}
+          {busy && <p role="status">Saving to the backend…</p>}
+          {children}
+        </div>
       </main>
     </div>);
 }

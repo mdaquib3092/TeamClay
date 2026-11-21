@@ -1,0 +1,30 @@
+{
+  "upstream": "https://github.com/lharries/whatsapp-mcp",
+  "purpose": "Isolated staff-only reply transport; original checkout is unchanged.",
+  "files": [
+    {
+      "source": "whatsapp-bridge/main.go",
+      "sha256": "4e5560242f78f16bdea9fd285d71cd252db78f26a010f297cabcc4171f1954a7"
+    },
+    {
+      "source": "whatsapp-bridge/go.mod",
+      "sha256": "a27a061811d71d43a414b4152ab3ae637f6253ec3d2b7c571a9519b3b39a6697"
+    },
+    {
+      "source": "whatsapp-bridge/go.sum",
+      "sha256": "ca30873b871c05acc54f9f4ef499ee79496571d3f68615a0112920fd42066d13"
+    },
+    {
+      "source": "whatsapp-bridge/pairing.go",
+      "sha256": "ca2dc9e29026016f432f2ff3190b921eb3e1211a5b2f7436c59861ac3ff42c84"
+    },
+    {
+      "source": "whatsapp-bridge/pairing_test.go",
+      "sha256": "fefbb6ab20a75b0ac01eae5800cdceb12d4070f77efc72b548a39f6bdaf060c2"
+    },
+    {
+      "source": "LICENSE",
+      "sha256": "86861f8ef4b108e301646f0f599eda922838d14c20303115c243338a70f9c3a0"
+    }
+  ]
+}

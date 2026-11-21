@@ -1,0 +1,8 @@
+.env*
+!.env.example
+.local/
+node_modules/
+*.sqlite*
+*.db*
+*.log
+bridge/vinayak-staff-bridge

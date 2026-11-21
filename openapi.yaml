@@ -586,7 +586,7 @@ paths:
               type: object
               required: [vendor_ids, subject, body]
               properties:
-                vendor_ids: { type: array, items: { type: string }, minItems: 3, description: SOP step 5 — minimum three vendors }
+                vendor_ids: { type: array, items: { type: string }, minItems: 2, description: Current RFQ policy — minimum two distinct eligible vendors }
                 subject: { type: string }
                 body: { type: string }
       responses:

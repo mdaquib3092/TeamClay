@@ -1,101 +1,78 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useStore } from "../store.jsx";
-import { VM, logRows } from "../data.js";
-import { Txt, Seg } from "../components/ui.jsx";
+import { useResource } from "../hooks.jsx";
 
-const PH = ({ t }) => <span className="ph">[{t}]</span>;
+const Error = ({ error }) => error ? <p className="err" role="alert">{error}</p> : null;
+const DataTable = ({ rows }) => {
+  if (!rows?.length) return <p className="muted">No rows available.</p>;
+  const keys = Object.keys(rows[0]);
+  return <div className="tablewrap"><table><thead><tr>{keys.map(key => <th key={key}>{key}</th>)}</tr></thead><tbody>{rows.map((row, i) => <tr key={i}>{keys.map(key => <td key={key}>{row[key] == null ? "Unknown" : String(row[key])}</td>)}</tr>)}</tbody></table></div>;
+};
 
 export function AdminData() {
-  const cards = [["Materials", "40"], ["Stock", "80"], ["Vendors", "15"], ["Vendor performance", "15"]];
-  const refs = useRef([]);
-  return (
-    <div className="cards4">{cards.map(([n, c], i) => (
-      <div key={n} className="card upload">
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}><h2 style={{ margin: 0 }}>{n}</h2><span className="num"><b>{c}</b> rows</span></div>
-        <div className="small muted">Last updated {i === 1 ? "21 Nov 10:00" : <PH t="date, time" />}</div>
-        <div className="dz">
-          <label htmlFor={`f${i}`} style={{ margin: 0, fontWeight: 500 }}>Drop CSV here or</label>
-          <input id={`f${i}`} ref={el => (refs.current[i] = el)} type="file" accept=".csv" className="sr" />
-          <button className="btn" style={{ marginTop: 8 }} onClick={() => refs.current[i].click()}>Upload CSV</button>
-        </div>
-        <div className="tablewrap"><table>
-          <thead><tr>{[0, 1, 2].map(k => <th key={k}><PH t="column" /></th>)}</tr></thead>
-          <tbody>{[0, 1, 2].map(k => <tr key={k}>{[0, 1, 2].map(j => <td key={j}><PH t="value" /></td>)}</tr>)}</tbody>
-        </table></div>
-        <div className="small">Errors: <b>0</b> <span className="muted"><PH t="error list shows here" /></span></div>
-      </div>))}</div>);
+  const { payload } = useStore(); const catalog = useResource("/local-api/catalog");
+  return <>
+    <div className="card"><h2>Saved procurement workspace</h2><p>{payload.workspace.requests.length} requirements · {payload.workspace.items.length} ERP records · {payload.workspace.vendors.length} vendor records · {payload.workspace.quotes.length} quotations.</p>
+      <p>These come from the existing saved backend, not the frontend's original invented orders. Use Procurement workflow to capture or read source documents.</p></div>
+    <Error error={catalog.error} />
+    <div className="stack" style={{ marginTop: 16 }}>{Object.entries(catalog.data?.tables || {}).map(([name, rows]) => <section className="card" key={name}>
+      <h2>{name} · {rows.length} configured CSV rows</h2><p className="small muted">{catalog.data.source}. Separate from the imported workspace; no silent cross-catalog matching or historical ratings are assumed.</p>
+      <details><summary>Preview current configured rows</summary><DataTable rows={rows.slice(0, 25)} /></details>
+    </section>)}</div>
+  </>;
 }
 
 export function AdminVendors() {
-  const list = Object.entries(VM);
-  return (<>
-    <div className="toolbar"><b>{list.length} vendors</b><span className="muted small">Vendors with no orders show "New vendor", never a low score. Rows 5–15 are sample data.</span></div>
-    <div className="tablewrap"><table>
-      <thead><tr><th>Vendor</th><th>Category</th><th>WhatsApp</th><th>Email</th><th>Payment terms</th><th className="num">Orders</th><th className="num">On-time</th><th className="num">Quality</th><th className="num">Avg reply</th></tr></thead>
-      <tbody>{list.map(([n, v]) => (
-        <tr key={n}><td><b>{n}</b></td><td>{v.cat}</td><td><PH t="number" /></td><td><PH t="email" /></td><td>{v.terms || <PH t="terms" />}</td>
-          {v.isNew ? <td colSpan={4}><span className="flag" style={{ margin: 0 }}>New vendor</span> <span className="small muted">No orders yet</span></td>
-            : <><td className="num"><PH t="n" /></td><td className="num">{v.ot}</td><td className="num">{v.q}/5</td><td className="num">{v.rp}</td></>}</tr>))}</tbody>
-    </table></div></>);
+  const { payload } = useStore();
+  const catalog = useResource("/local-api/catalog");
+  return <>
+    <h2>Procurement workspace vendors</h2>
+    <DataTable rows={payload.workspace.vendors.map(v => ({ id: v.id, name: v.name, category: v.category || "Unconfirmed", email: v.email || null, history: v.performance ? `${v.performance.completedOrders} recorded orders` : "No verified history" }))} />
+    <h2 style={{ marginTop: 24 }}>Configured communication contacts (CSV)</h2>
+    <Error error={catalog.error} /><DataTable rows={catalog.data?.tables.vendors} />
+    <p className="notice">The CSV uses demo/test identities and shared inboxes. These records have not been silently substituted for source-pack contractors or confirmed as independent eligible bids.</p>
+  </>;
 }
 
-const STOCK = {
-  Amara: [["TMT 12mm", "Steel", "0.4", "MT", true], ["TMT 16mm", "Steel", "0", "MT", false], ["Cement OPC 53", "Cement", "0", "bags", false], ["AAC block 600×200×200 mm", "Blocks", "0", "nos", false], ["Binding wire 18 gauge", "Hardware", "350", "kg", true]],
-  Aquina: [["River sand", "Sand & aggregates", "0", "cft", false], ["Stone chips 20 mm", "Sand & aggregates", "0", "cft", false], ["Cement OPC 53", "Cement", "0", "bags", false], ["PVC conduit 25 mm", "Electrical", "800", "m", true]],
-};
 export function AdminStock() {
-  const [proj, setProj] = useState("Amara"); const [f, setF] = useState("all");
-  const cnt = proj === "Amara" ? { a: 23, o: 17 } : { a: 13, o: 27 };
-  const rows = STOCK[proj].filter(r => f === "all" || (f === "avail" ? r[4] : !r[4]));
-  return (<>
-    <div className="toolbar">
-      <Seg label="Project" value={proj} onChange={setProj} options={[["Amara", "Amara"], ["Aquina", "Aquina"]]} />
-      <Seg label="Filter" value={f} onChange={setF} options={[["all", `All · ${cnt.a + cnt.o}`], ["avail", `Available · ${cnt.a}`], ["out", `Out of stock · ${cnt.o}`]]} />
-      <span className="small muted">Updated 21 Nov 10:00</span></div>
-    <div className="tablewrap"><table>
-      <thead><tr><th>Code</th><th>Material</th><th>Category</th><th className="num">Qty available</th><th>Unit</th><th>Status</th></tr></thead>
-      <tbody>{rows.map(r => <tr key={r[0]}><td><PH t="code" /></td><td>{r[0]}</td><td>{r[1]}</td><td className="num">{r[2]}</td><td>{r[3]}</td>
-        <td>{r[4] ? <span className="chip s-stock">Available</span> : <span className="chip s-replies">Out of stock</span>}</td></tr>)}</tbody>
-    </table></div>
-    <p className="small muted">Showing rows used by the sample orders. <PH t="remaining rows from Stock CSV" /></p></>);
+  const catalog = useResource("/local-api/catalog");
+  const [project, setProject] = useState("");
+  const rows = (catalog.data?.tables.stock || []).filter(row => !project || row.project_id === project);
+  return <>
+    <p className="notice">Configured CSV stock is shown as supplied. It is not a live ERP stock ledger and is not automatically deducted from imported waterproofing/road-work BOQs.</p>
+    <Error error={catalog.error} />
+    <div className="field"><label>Project</label><select value={project} onChange={event => setProject(event.target.value)}><option value="">All projects</option>
+      {[...new Set(catalog.data?.tables.stock?.map(row => row.project_id))].map(id => <option key={id}>{id}</option>)}</select></div>
+    <DataTable rows={rows} />
+  </>;
 }
 
-function AgentCard({ title }) {
-  const [res, setRes] = useState("");
-  const test = () => { setRes("Sending…"); setTimeout(() => setRes("Demo result: [agent response]"), 600); };
-  const id = title.split(" ")[0].toLowerCase();
-  return (
-    <div className="card"><h2>{title}</h2>
-      <div className="field"><label htmlFor={id + "u"}>Agent URL</label><input id={id + "u"} type="text" placeholder="[https://agent-url]" /></div>
-      <div className="field"><label htmlFor={id + "k"}>API key</label><input id={id + "k"} type="password" placeholder="[API key]" /></div>
-      <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}><button className="btn" onClick={test}>Send test</button><span className="small" role="status"><Txt>{res}</Txt></span></div>
-    </div>);
-}
 export function AdminIntegrations() {
-  const [sim, setSim] = useState(true); const [msg, setMsg] = useState("Give this URL to both agents so replies reach Clay.");
-  const url = "[https://clay.example/webhook/inbound]";
-  const copy = async () => { try { await navigator.clipboard.writeText(url); setMsg("Copied."); } catch { setMsg("Select the URL and press Ctrl+C to copy."); } };
-  return (<>
-    <div className="grid2"><AgentCard title="WhatsApp agent" /><AgentCard title="Email agent" /></div>
-    <div className="card" style={{ marginTop: 16 }}><h2>Our inbound webhook</h2>
-      <div className="inline"><input type="text" readOnly value={url} aria-label="Inbound webhook URL" /><button className="btn" onClick={copy}>Copy</button></div>
-      <div className="help" role="status">{msg}</div></div>
-    <div className="card" style={{ marginTop: 16 }}><h2>Sample data</h2>
-      <label className="switch"><input type="checkbox" checked={sim} onChange={e => setSim(e.target.checked)} /> Simulate vendor replies (sample data)</label>
-      <div className="help">When on, vendor replies come from demo data instead of the live agents.</div></div></>);
+  const { payload } = useStore();
+  const status = useResource("/local-api/status"), roles = useResource("/local-api/roles");
+  const data = status.data;
+  return <>
+    <div className="toolbar"><button className="btn" onClick={() => { status.refresh(); roles.refresh(); }}>Check connections (no messages sent)</button><a className="btn" href="#admin-agent">Open agent inbox</a></div>
+    <Error error={status.error || roles.error} />
+    <div className="grid2">
+      <section className="card"><h2>Procurement backend</h2><p>Connected · signed in as {payload.identity.name}</p><p>Saved revision {payload.workspace.revision}. All case mutations use optimistic concurrency and the existing domain gates.</p></section>
+      <section className="card"><h2>WhatsApp bridge</h2><p>{data?.whatsapp.phase || data?.whatsapp.state || "Checking…"}</p><p>Account ending {data?.whatsapp.accountLastFour || "not available"}</p><p>Outbound scope: {data?.whatsapp.sendScope || (data?.whatsapp.outboundEnabled ? "See transport configuration" : "Disabled")}</p><a href="http://127.0.0.1:8766" target="_blank" rel="noreferrer">Bridge status / pairing</a></section>
+      <section className="card"><h2>Staff conversation / voice agent</h2><p>Chat model: {data?.agent.chat?.model || "Not reported"}</p><p>Automatic staff replies: {data?.agent.chat?.automaticReplies ? "Enabled for configured staff" : "Not enabled / unavailable"}</p><p>Verified WhatsApp case commands: {data?.agent.caseWorkflow?.enabled ? "enabled" : "unavailable"}.</p></section>
+      <section className="card"><h2>Gmail</h2><p>{data?.gmail.state || "Checking…"}</p><p>{data?.gmail.mailbox || "No saved mailbox"}</p><p>{data?.liveEmailDispatch ? "The case worker sends PM-confirmed RFQs and watches their Gmail threads for vendor replies." : "Case email automation is unavailable."}</p><a href="#live-cases">View RFQ receipts and HOD reports</a></section>
+    </div>
+    <section className="card" style={{ marginTop: 16 }}><h2>Configured WhatsApp staff</h2>
+      <DataTable rows={roles.data?.staff?.map(user => ({ name: user.name, role: user.label || user.role, project: user.project_id, number: `ending ${user.number_ending}` }))} />
+      <p>Identity/role comes from the existing staff roster and verified sender mapping, never from a claim in message text. Selecting a web view does not impersonate that staff member.</p>
+    </section>
+  </>;
 }
 
 export function AdminLog() {
-  const { reqs } = useStore();
-  const [rq, setRq] = useState("all"); const [ch, setCh] = useState("all");
-  const rows = logRows(reqs).filter(r => (ch === "all" || r[0] === ch) && (rq === "all" || r[4] === rq));
-  return (<>
-    <div className="toolbar">
-      <div><label htmlFor="lr">Requirement</label><select id="lr" value={rq} onChange={e => setRq(e.target.value)}><option value="all">All</option>{reqs.map(r => <option key={r.id}>{r.id}</option>)}</select></div>
-      <div><label htmlFor="lc">Channel</label><select id="lc" value={ch} onChange={e => setCh(e.target.value)}><option value="all">All</option><option>WhatsApp</option><option>Email</option></select></div>
-      <span className="small muted" style={{ alignSelf: "flex-end", paddingBottom: 12 }}>{rows.length} messages</span></div>
-    <div className="tablewrap"><table>
-      <thead><tr><th>Time</th><th>Channel</th><th>Dir.</th><th>From</th><th>To</th><th>Req.</th><th>Message</th><th>Status</th></tr></thead>
-      <tbody>{rows.map((r, i) => <tr key={i}><td className="num"><PH t="time" /></td><td>{r[0]}</td><td>{r[1] === "In" ? "↓ In" : "↑ Out"}</td><td>{r[2]}</td><td>{r[3]}</td><td>{r[4]}</td><td style={{ minWidth: 260 }}><Txt>{r[5]}</Txt></td><td>{r[6]}</td></tr>)}</tbody>
-    </table></div></>);
+  const { payload } = useStore(); const [id, setId] = useState("");
+  const events = payload.workspace.events.filter(event => !id || event.requestId === id);
+  return <>
+    <div className="field"><label>Case</label><select value={id} onChange={event => setId(event.target.value)}><option value="">All cases</option>{payload.workspace.requests.map(r => <option key={r.id} value={r.id}>{r.title}</option>)}</select></div>
+    <DataTable rows={events.map(event => ({ at: event.at, actor: event.actor, action: event.action, case: event.requestId, detail: event.detail }))} />
+    <p className="small muted">Actual backend audit records only. Staff conversations are in Agent inbox; no fabricated delivery events are generated.</p>
+  </>;
 }

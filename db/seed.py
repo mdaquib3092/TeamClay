@@ -63,8 +63,15 @@ def read_csv(table, cols):
         missing = set(cols) - set(reader.fieldnames or [])
         if missing:
             sys.exit(f"{path.name}: missing columns {sorted(missing)}")
-        return [tuple((r[c].strip() if r[c] is not None and r[c].strip() != "" else None) for c in cols)
+        rows = [tuple((r[c].strip() if r[c] is not None and r[c].strip() != "" else None) for c in cols)
                 for r in reader]
+    if table in ("vendor_performance", "sample_vendor_replies"):
+        # Keep the full historical/demo CSVs, but seed only records belonging to
+        # configured vendors. Otherwise a smaller vendor list breaks FK checks.
+        active_ids = {row[0] for row in read_csv("vendors", ["vendor_id"])}
+        vendor_column = cols.index("vendor_id")
+        rows = [row for row in rows if row[vendor_column] in active_ids]
+    return rows
 
 
 def main():

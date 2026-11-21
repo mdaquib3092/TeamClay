@@ -1,0 +1,7 @@
+{
+  "demo": true, "activeRequestId":"demo-room",
+  "requests":[{"id":"demo-room","title":"Training room floor finish","project":"Example project","location":"Training room","category":"Finishing","quantity":50,"unit":"sqm","specification":"Demonstration scope only","needBy":"","priority":"Normal","sourceText":"Fictional training fixture: finish 50 sqm of floor.","selectedItemId":"sample-floor","createdAt":"2026-01-01T00:00:00Z","lines":[{"id":"floor","code":"DEMO-01","description":"Floor finish","quantity":50,"unit":"sqm","itemId":"sample-floor","specification":"Demo finish","optional":false,"sourceRef":"Demo.txt"}],"measuredScopeOnly":false,"sourceName":"Demo.txt","flags":[]}],
+  "items":[{"id":"sample-floor","code":"DEMO-01","name":"Floor finish","category":"Finishing","unit":"sqm","specification":"Demo finish","provisional":false}],
+  "vendors":[{"id":"example-a","name":"Example Finishes A","category":"Finishing","email":"a@example.test","contact":"","performance":null},{"id":"example-b","name":"Example Finishes B","category":"Finishing","email":"b@example.test","contact":"","performance":null}],
+  "quotes":[],"sop":[],"sourceNotes":["Synthetic public starter. Owner-private workspaces and source documents belong outside Git."]
+}

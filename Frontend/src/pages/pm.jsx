@@ -1,150 +1,90 @@
 import { useEffect, useState } from "react";
 import { useStore } from "../store.jsx";
-import { P, statusOf, hasReport, repliedVendors, recQ, nextStep, rfqMail, hodMail, replyText, STATUS } from "../data.js";
-import { Txt, Chip, Flags, StatusBar, Rule, DecisionBanner, Tabs } from "../components/ui.jsx";
+import { statusOf, repliedVendors, recQ, nextStep, rfqMail } from "../data.js";
+import { Flags, StatusBar, Rule, DecisionBanner, Tabs } from "../components/ui.jsx";
 import { ReqHeader, StockCard, RfqCard, RankingTable, Tracking } from "../components/Req.jsx";
 
-const go = h => { location.hash = h; };
+export const reportLink = id => `#report/${encodeURIComponent(id)}`;
 
-/* ---------- Requests: status tracking only ---------- */
 export function PmRequests() {
   const { myReqs } = useStore();
-  const order = { drafts: 0, sentback: 1, sent: 2, hod: 3, approved: 4, instock: 5 };
-  const rows = [...myReqs].sort((a, b) => order[a.stage] - order[b.stage]);
-  const counts = Object.keys(order).map(k => [k, rows.filter(r => r.stage === k).length]).filter(x => x[1]);
-  return (<>
-    <div className="notice" style={{ marginBottom: 16 }}>You track status here. Clay drafts every email and sends each ranking report straight to the HOD with an approval link.</div>
-    <div className="toolbar">{counts.map(([k, n]) => <span key={k} style={{ display: "inline-flex", gap: 6, alignItems: "center" }}><Chip status={STATUS[k]} /><span className="small muted" style={{ marginRight: 8 }}>{n}</span></span>)}</div>
+  return <>
+    <div className="toolbar"><a className="btn primary" href="#pm-workflow">Capture / review a requirement</a></div>
     <div className="tablewrap"><table>
-      <thead><tr><th>ID</th><th>Material</th><th className="num">Qty</th><th>Needed by</th><th>Raised by</th><th>Status</th><th>Next step</th></tr></thead>
-      <tbody>{rows.map(r => (
-        <tr key={r.id} className="rowlink" tabIndex={0} onClick={() => go("report-" + r.id.slice(4))} onKeyDown={e => e.key === "Enter" && go("report-" + r.id.slice(4))}>
-          <td><a href={`#report-${r.id.slice(4)}`}><b>{r.id}</b></a></td><td>{r.short}</td><td className="num">{r.qty}</td><td>{r.needBy}</td><td>{r.by}</td>
-          <td><Chip status={statusOf(r)} /></td><td className="small">{nextStep(r)}</td></tr>))}</tbody>
+      <thead><tr><th>ID</th><th>Work package</th><th>Scope</th><th>Required by</th><th>Status</th><th>Next step</th></tr></thead>
+      <tbody>{myReqs.map(r => <tr key={r.id}><td><a href={reportLink(r.id)}>{r.id}</a></td><td>{r.title}<div className="small muted">{r.project}</div></td><td>{r.qty}</td><td>{r.needBy}</td><td>{statusOf(r)}</td><td>{nextStep(r)}</td></tr>)}
+        {!myReqs.length && <tr><td colSpan={6}>No saved requirements. Capture one to begin.</td></tr>}</tbody>
     </table></div>
-  </>);
+  </>;
 }
 
-/* ---------- Outbox: Clay drafts, PM presses Send ---------- */
 export function PmOutbox() {
-  const { myReqs, dispatch } = useStore();
-  const [tab, setTab] = useState("Drafts");
-  const [sel, setSel] = useState(null);
-
-  const groups = myReqs.map(r => {
-    let items;
-    if (tab === "Drafts") items = r.stage === "drafts" ? r.vendors.filter(v => !r.sent.includes(v)).map(v => ({ id: r.id + "|" + v, r, v, name: v, m: rfqMail(r, v), draft: true })) : [];
-    else {
-      items = r.sent.map(v => ({ id: r.id + "|" + v, r, v, name: v, m: rfqMail(r, v) }));
-      if (hasReport(r)) items.push({ id: r.id + "|HOD", r, name: "Vikram (HOD)", m: hodMail(r), auto: true });
-    }
-    return { r, items };
-  }).filter(g => g.items.length);
-  const all = groups.flatMap(g => g.items);
-  const nDrafts = myReqs.reduce((n, r) => n + (r.stage === "drafts" ? r.vendors.length - r.sent.length : 0), 0);
-  const nSent = myReqs.reduce((n, r) => n + r.sent.length + (hasReport(r) ? 1 : 0), 0);
-  const cur = all.find(x => x.id === sel) || all[0];
-
-  return (<>
-    <Tabs value={tab} onChange={t => { setTab(t); setSel(null); }} tabs={[["Drafts", `Drafts · ${nDrafts}`], ["Sent", `Sent · ${nSent}`]]} />
-    {!all.length ? <div className="card"><p className="muted" style={{ margin: 0 }}>{tab === "Drafts" ? "No drafts. Clay writes RFQ drafts here as soon as a requirement is short on stock." : "Nothing sent yet."}</p></div> : (
-      <div className="mail">
-        <div className="mlist" role="list">
-          {groups.map(g => (<div key={g.r.id}>
-            <div className="mgroup"><div className="mrow"><span>{g.r.id} · {g.r.short}</span>
-              {tab === "Drafts"
-                ? <button className="btn" style={{ minHeight: 44, padding: "0 10px", fontSize: 13 }} onClick={() => { dispatch({ type: "sendAll", id: g.r.id }); setSel(null); }}>Send all {g.items.length}</button>
-                : <span className="small muted">{g.items.length}</span>}</div></div>
-            {g.items.map(x => (
-              <button key={x.id} className={`mitem ${x.id === cur.id ? "on" : ""}`} role="listitem" onClick={() => setSel(x.id)}>
-                <span className="mrow"><b>{x.name}</b>
-                  {x.auto ? <span className="flag" style={{ margin: 0 }}>Auto-sent by Clay</span> : x.draft ? <span className="flag" style={{ margin: 0 }}>Draft</span> : <span className="small muted"><Txt>{P("time")}</Txt></span>}</span>
-                <span className="small muted ell">{x.m.subj}</span></button>))}
-          </div>))}
-        </div>
-        <div className="mread card">
-          <div className="mhead"><div><div className="small muted">To</div><b><Txt>{cur.m.to}</Txt></b></div>
-            {cur.draft ? <button className="btn primary" onClick={() => { dispatch({ type: "send", id: cur.r.id, vendor: cur.v }); setSel(null); }}>Send</button> : <span className="chip s-rfq">Sent</span>}</div>
-          <div className="small muted" style={{ marginTop: 10 }}>Subject</div>
-          <div style={{ fontWeight: 600, marginBottom: 12 }}>{cur.m.subj}</div>
-          <div className="raw"><Txt>{cur.m.body}</Txt></div>
-          <p className="small muted" style={{ margin: "10px 0 0" }}>{cur.draft ? "Drafted by Clay from the RFQ template. You only need to press Send." : cur.auto ? "Sent automatically by Clay when all replies were in. You are copied for tracking." : "Sent by you."}</p>
-        </div>
-      </div>)}
-  </>);
+  const { myReqs, dispatch, busy, payload } = useStore();
+  const [tab, setTab] = useState("Drafts"), [pick, setPick] = useState(""), [selected, setSelected] = useState({});
+  const entries = myReqs.flatMap(r => tab === "Sent"
+    ? r.rfqs.map(rfq => ({ r, vendor: r.vendors.find(v => r.vendorIds[v] === rfq.vendorId), mail: { to: rfq.recipient, subj: rfq.subject, body: rfq.body }, rfq }))
+    : !r.approval ? r.vendors.filter(v => r.candidateIds.includes(r.vendorIds[v]) && !r.sent.includes(v)).map(vendor => ({ r, vendor, mail: rfqMail(r, vendor) })) : []);
+  const current = entries.find(entry => `${entry.r.id}|${entry.vendor}` === pick) || entries[0];
+  const chosen = current ? selected[current.r.id] || [] : [];
+  return <>
+    <div className="notice" style={{ marginBottom: 16 }}>This is the backend's internal test outbox—not Gmail. At least {payload.policy.minimumRfqVendors} distinct eligible vendors and reviewed item mappings are required. No real supplier email is sent.</div>
+    <Tabs tabs={[["Drafts", "Drafts"], ["Sent", "Saved test dispatches"]]} value={tab} onChange={value => { setTab(value); setPick(""); }} />
+    {!current ? <div className="card">No {tab === "Drafts" ? "eligible drafts" : "saved test dispatches"}.</div> : <div className="mail">
+      <div className="mlist">{entries.map(entry => <button key={`${entry.r.id}|${entry.vendor}`} className={`mitem ${entry === current ? "on" : ""}`} onClick={() => setPick(`${entry.r.id}|${entry.vendor}`)}>
+        <b>{entry.vendor}</b><div className="small muted">{entry.r.id} · {entry.r.title}</div></button>)}</div>
+      <div className="card">
+        <h2>{current.r.title}</h2><p><b>To:</b> {current.mail.to}</p><p><b>Subject:</b> {current.mail.subj}</p>
+        <div className="raw">{current.mail.body}</div>
+        {tab === "Drafts" && <>
+          <h3>Select the invitation batch</h3>
+          {current.r.vendors.filter(v => current.r.candidateIds.includes(current.r.vendorIds[v]) && !current.r.sent.includes(v)).map(v => <label className="inline" key={v}>
+            <input type="checkbox" checked={chosen.includes(current.r.vendorIds[v])} onChange={event => setSelected(value => ({ ...value, [current.r.id]: event.target.checked ? [...chosen, current.r.vendorIds[v]] : chosen.filter(id => id !== current.r.vendorIds[v]) }))} />{v}
+          </label>)}
+          <button className="btn primary" style={{ marginTop: 12 }} disabled={busy || chosen.length < payload.policy.minimumRfqVendors}
+            onClick={() => dispatch({ type: "sendAll", id: current.r.id, vendorIds: chosen })}>Save {chosen.length} test RFQs</button>
+          <p className="small muted">If the backend blocks dispatch, resolve the BOQ/item mappings in Procurement workflow first.</p>
+        </>}
+        {current.rfq && <p className="small muted">{current.rfq.status} · {new Date(current.rfq.createdAt).toLocaleString()}</p>}
+      </div>
+    </div>}
+  </>;
 }
 
-/* ---------- Inbox: replies grouped by quotation ---------- */
 export function PmInbox() {
   const { myReqs, read, dispatch } = useStore();
-  const [pick, setPick] = useState(null);
-  const withMail = myReqs.filter(r => repliedVendors(r).length || r.stage === "sent");
-  const waiting = myReqs.filter(r => r.stage === "drafts");
-  const keys = withMail.flatMap(r => repliedVendors(r).map(v => r.id + "|" + v));
-  const selKey = keys.includes(pick) ? pick : keys[0];
-  useEffect(() => { if (selKey) dispatch({ type: "markRead", key: selKey }); }, [selKey]);
-
-  const tip = waiting.length > 0 && <div className="notice" style={{ marginBottom: 16 }}>{waiting.length} requirement{waiting.length > 1 ? "s have" : " has"} RFQ drafts waiting. <a href="#pm-outbox">Open Outbox</a></div>;
-  if (!withMail.length) return <>{tip}<div className="card"><p className="muted" style={{ margin: 0 }}>No vendor replies yet.</p></div></>;
-
-  let reader = <p className="muted" style={{ margin: 0 }}>Select a reply.</p>;
-  if (selKey) {
-    const [id, v] = selKey.split("|"); const r = myReqs.find(x => x.id === id), q = r.quotes[v], subj = rfqMail(r, v).subj;
-    reader = (<>
-      <div className="mhead"><div><div className="small muted">Thread · {r.id} · {r.short}</div><b style={{ fontSize: 17 }}>{v}</b></div>
-        <button className="link small" onClick={() => dispatch({ type: "openRaw", key: selKey })}>View original reply</button></div>
-      <div className="msg out"><div className="mrow"><b>You → {v}</b><span className="small muted"><Txt>{P("time")}</Txt></span></div><div className="small muted">{subj}</div><p style={{ margin: "6px 0 0" }}>RFQ sent (drafted by Clay)</p></div>
-      <div className="msg"><div className="mrow"><b>{v}</b><span className="small muted"><Txt>{P("time")}</Txt></span></div><div className="small muted">Re: {subj}</div><p style={{ margin: "6px 0 0" }}><Txt>{replyText(r, v)}</Txt></p></div>
-      <h3 style={{ fontSize: 14, margin: "16px 0 6px" }}>What Clay read</h3>
-      <dl className="kv">{q.unranked ? <><dt>Said</dt><dd>{q.said}</dd><dt>Ranking</dt><dd>{q.reason}</dd></> : <>
-        <dt>Landed ex-GST</dt><dd>{q.landed}/{q.u}</dd><dt>Total ex-GST</dt><dd>{q.total} {hasReport(r) && q.diff}</dd>
-        <dt>Rank</dt><dd>{hasReport(r) ? `${q.rank} · score ${q.score}` : "After all replies are in"}</dd></>}</dl>
-      <div style={{ marginTop: 8 }}><Flags list={q.flags} /></div>
-      <p className="small muted" style={{ margin: "12px 0 0" }}>View only. Clay handles follow-ups and builds the report.</p>
-    </>);
-  }
-  return (<>{tip}
-    <div className="mail">
-      <div className="mlist" role="list">
-        {withMail.map(r => { const rep = repliedVendors(r); return (
-          <div key={r.id}>
-            <div className="mgroup"><div>{r.id} · {r.short}</div>
-              <div className="small muted" style={{ fontWeight: 500 }}>{rep.length} of {r.vendors.length} vendors replied · {r.vendors.length + rep.length} emails · <Chip status={statusOf(r)} /></div></div>
-            {hasReport(r)
-              ? <a className="btn block" href={`#report-${r.id.slice(4)}`} style={{ margin: "0 0 6px" }}>Consolidated report</a>
-              : <button className="btn block" style={{ margin: "0 0 6px" }} onClick={() => { dispatch({ type: "simReplies", id: r.id }); setPick(null); }}>Simulate remaining replies (demo)</button>}
-            {rep.map(v => { const k = r.id + "|" + v, q = r.quotes[v]; return (
-              <button key={k} className={`mitem ${k === selKey ? "on" : ""} ${read.includes(k) ? "" : "unread"}`} role="listitem" onClick={() => setPick(k)}>
-                <span className="mrow"><span className="vn">{v}</span><span className="small muted">2 emails</span></span>
-                <span className="small muted ell">{q.unranked ? `${q.said} · not ranked` : hasReport(r) ? `Rank ${q.rank} · ${q.total} · score ${q.score}` : `${q.landed}/${q.u} · ranking pending`}</span></button>); })}
-            {r.vendors.filter(v => !rep.includes(v)).map(v => <div key={v} className="mitem" style={{ cursor: "default" }}><span className="mrow"><span className="muted">{v}</span><span className="small muted">awaiting</span></span></div>)}
-            <div style={{ height: 10 }} />
-          </div>); })}
+  const [pick, setPick] = useState("");
+  const entries = myReqs.flatMap(r => repliedVendors(r).map(vendor => ({ r, vendor, quote: r.quotes[vendor], key: `${r.id}|${vendor}` })));
+  const current = entries.find(entry => entry.key === pick) || entries[0];
+  const key = current?.key;
+  useEffect(() => { if (key) dispatch({ type: "markRead", key }); }, [key]);
+  return <>
+    <div className="toolbar"><a className="btn" href="#admin-agent">Open staff agent intake</a><a className="btn primary" href="#pm-workflow">Import / review quotation</a></div>
+    {!current ? <div className="card">No quotations have been saved. Gmail inbox monitoring is not enabled; import a source quotation for human review.</div> : <div className="mail">
+      <div className="mlist">{entries.map(entry => <button key={entry.key} className={`mitem ${entry.key === key ? "on" : ""} ${read.includes(entry.key) ? "" : "unread"}`} onClick={() => setPick(entry.key)}>
+        <b>{entry.vendor}</b><div className="small muted">{entry.r.title}</div><div>{entry.quote.rank ? `Rank ${entry.quote.rank}` : "Review required"}</div></button>)}</div>
+      <div className="card">
+        <h2>{current.vendor}</h2><div className="small muted">{current.r.id} · {current.quote.sourceName} · {new Date(current.quote.receivedAt).toLocaleString()}</div>
+        <p>{current.r.sent.includes(current.vendor) ? "An internal test RFQ is recorded for this vendor." : "Imported quotation; no email dispatch is claimed."}</p>
+        <div className="raw">{current.quote.rawMessage || "No source text recorded."}</div>
+        <dl className="kv"><dt>Measured base subtotal</dt><dd>{current.quote.baseTotal}</dd><dt>Landed total incl. entered GST</dt><dd>{current.quote.total}</dd><dt>Review</dt><dd>{current.quote.reason}</dd></dl>
+        <Flags list={current.quote.flags} />
+        <p><a href={reportLink(current.r.id)}>Open comparison and case</a></p>
       </div>
-      <div className="mread card">{reader}</div>
-    </div></>);
+    </div>}
+  </>;
 }
 
-/* ---------- Report: PM has view access + tracking ---------- */
 export function PmReport({ r }) {
-  if (!r) return <div className="card"><p className="muted" style={{ margin: 0 }}>Not found in your project.</p></div>;
-  const rpt = hasReport(r);
-  return (<>
-    <p style={{ margin: "0 0 12px" }}><a href="#pm-list">← All requests</a></p>
-    <div className="stack" style={{ marginBottom: 16 }}><DecisionBanner r={r} /><StatusBar status={statusOf(r)} /><Rule /></div>
-    <div className="review">
-      <div className="stack"><ReqHeader r={r} /><div className="grid2"><StockCard r={r} /><RfqCard r={r} /></div></div>
-      <div className="aside stack">
-        <div className="card"><h2>Tracking</h2><Tracking r={r} />
-          {r.stage === "drafts" && <a className="btn primary block" href="#pm-outbox" style={{ marginTop: 8 }}>Send {r.vendors.length - r.sent.length} RFQ drafts</a>}</div>
-        {rpt && <div className="card"><div className="small muted">Clay's recommendation</div>
-          <div style={{ fontSize: 17, fontWeight: 700, margin: "2px 0" }}>{r.rec}</div><div>{recQ(r).total} ex-GST · score {recQ(r).score}</div>
-          <p className="small muted" style={{ margin: "10px 0 0" }}>You have view access. The HOD approves or sends back.</p></div>}
+  if (!r) return <div className="card">No saved request with this ID.</div>;
+  return <>
+    <p><a href="#pm-list">← All requests</a></p>
+    <div className="stack"><DecisionBanner r={r} /><StatusBar status={statusOf(r)} /><Rule /></div>
+    <div className="review" style={{ marginTop: 16 }}>
+      <div className="stack"><ReqHeader r={r} /><StockCard r={r} /><RfqCard r={r} /></div>
+      <div className="aside stack"><div className="card"><h2>Case progress</h2><Tracking r={r} /><a className="btn block" href="#pm-workflow">Review BOQ / quotations</a></div>
+        <div className="card"><h2>Recommendation</h2>{r.rec ? <><b>{r.rec}</b><p>{recQ(r).total} landed · score {recQ(r).score}</p></> : <p>Not ready. Resolve the comparison flags; the UI never invents a winner.</p>}</div>
       </div>
     </div>
-    {r.stage !== "instock" && <div style={{ marginTop: 20 }}>
-      <div className="toolbar" style={{ justifyContent: "space-between", marginBottom: 10 }}><h2 style={{ fontSize: 16, margin: 0 }}>Consolidated ranking report</h2><span className="chip s-stock">View only</span></div>
-      {rpt ? <RankingTable r={r} /> : <div className="card"><p className="muted" style={{ margin: 0 }}>Clay builds this report once all replies are in, then sends it to the HOD.</p></div>}
-    </div>}
-  </>);
+    <h2 style={{ marginTop: 24 }}>Saved quotation comparison</h2><RankingTable r={r} />
+  </>;
 }

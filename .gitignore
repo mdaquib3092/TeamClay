@@ -7,3 +7,20 @@ venv/
 node_modules/
 vinayak-vch3-data/
 .DS_Store
+# Runtime procurement cases and email receipts are private local records.
+/data/rfqs/
+/data/voice_notes/
+/data/whatsapp-session/
+/data/backups/
+**/.credentials/
+.env.*
+!.env.example
+client_secret_*.json
+*.sqlite*
+*.db-wal
+*.db-shm
+*.token
+*.key
+*.pem
+*.log
+.wrangler/

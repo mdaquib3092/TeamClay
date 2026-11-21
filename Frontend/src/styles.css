@@ -163,4 +163,10 @@ tr.unranked td{color:var(--muted)}
 .upload{display:flex;flex-direction:column;gap:12px}
 .dz{border:1px dashed #94A3B8;border-radius:var(--r);padding:14px;text-align:center;font-size:14px}
 .cards4{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.live-head,.live-buttons,.live-badges,.live-steps{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.live-head{justify-content:space-between}.live-steps{margin:12px 0}.live-steps .btn[aria-pressed=true]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-dark)}
+.live-desk h3{font-size:15px;margin:16px 0 8px}.live-desk details{margin:14px 0}.live-desk summary{cursor:pointer}
+.live-desk pre{font:inherit;white-space:pre-wrap;overflow-wrap:anywhere;max-width:100%;margin:4px 0 12px}
+.live-message{border-left:3px solid var(--accent);background:#f7f9fb;padding:8px 14px;margin:8px 0 12px}.live-message p{margin:2px 0 6px}
+.live-buttons .btn{text-decoration:none}.live-walk{border-top:1px solid var(--line);padding-top:12px}.live-panel .tablewrap{margin:12px 0}
 @media (max-width:900px){.cards4{grid-template-columns:1fr}}

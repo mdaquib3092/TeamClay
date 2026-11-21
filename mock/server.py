@@ -7,6 +7,10 @@ from datetime import datetime, timedelta, timezone
 from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+try:
+    from .rfq_policy import RFQSelectionError, select_rfq_vendors
+except ImportError:  # Also support the documented `uvicorn server:app` in mock/.
+    from rfq_policy import RFQSelectionError, select_rfq_vendors
 
 IST = timezone(timedelta(hours=5, minutes=30))
 SEED = json.loads(pathlib.Path(__file__).with_name("fixtures.json").read_text())
@@ -112,13 +116,16 @@ def rfq_draft(pid: str, x_role: str = Header(...), x_user: str = Header(...)):
 
 @app.post(P + "/packages/{pid}/rfq/send")
 async def rfq_send(pid: str, req: Request, x_role: str = Header(...), x_user: str = Header(...)):
-    pkg(pid); b = await req.json()
-    if len(b.get("vendor_ids", [])) < 3: raise ApiError(422, "VALIDATION", "SOP needs at least three vendors.")
+    p = pkg(pid); b = await req.json()
+    if not isinstance(b, dict): raise ApiError(422, "VALIDATION", "Provide vendor_ids for this RFQ.")
+    try:
+        selected = select_rfq_vendors(b.get("vendor_ids"), DB["vendors"], p["category"])
+    except RFQSelectionError as error:
+        raise ApiError(422, "VALIDATION", str(error))
     out = []
-    for v in DB["vendors"]:
-        if v["id"] in b["vendor_ids"]:
-            out.append({"vendor_id": v["id"], "vendor_name": v["name"], "state": "sent", "sent_to": v["test_inbox"], "sent_at": now(),
-                        "next_follow_up_at": (datetime.now(IST) + timedelta(days=2)).isoformat(timespec="seconds")})
+    for v in selected:
+        out.append({"vendor_id": v["id"], "vendor_name": v["name"], "state": "sent", "sent_to": v["test_inbox"], "sent_at": now(),
+                    "next_follow_up_at": (datetime.now(IST) + timedelta(days=2)).isoformat(timespec="seconds")})
     log(x_role, x_user, "send_rfq", "ok", f"{len(out)} test inboxes", pid)
     return {"data": out}
 
