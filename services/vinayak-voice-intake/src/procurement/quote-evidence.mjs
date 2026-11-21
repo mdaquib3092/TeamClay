@@ -2,6 +2,15 @@ import {authoredReply} from "./quote-terms.mjs";
 
 const canonical=s=>s.normalize("NFKC").toLowerCase().replace(/[^\p{L}\p{N}]+/gu," ").trim();
 export const comparable=v=>v?.terms?.landed!=null&&!v.terms.flags?.length&&!v.sourceFlags?.length;
+// An optimistic calendar comparison, not a shipping commitment. Anchor to
+// the quote's saved Kolkata business date, rather than the day a report opens.
+export function deliveryWindow(received,days,needBy){
+  const day=86400000,due=Date.parse(needBy);
+  if(!Number.isSafeInteger(received)||!Number.isInteger(days)||days<0||!Number.isFinite(due))return null;
+  const arrival=(Math.floor((received+19800000)/day)+days)*day;
+  const margin=(due-arrival)/day;
+  return `if ordered on reply date: ${new Date(arrival).toISOString().slice(0,10)} (${margin===0?"on need-by date":`${Math.abs(margin)} ${Math.abs(margin)===1?"day":"days"} ${margin<0?"late":"before need-by"}`})`;
+}
 
 // Only an explicit sign-off naming another invited company is a conflict.
 // Common prices, the greeting, or names in the buyer's quoted RFQ do not

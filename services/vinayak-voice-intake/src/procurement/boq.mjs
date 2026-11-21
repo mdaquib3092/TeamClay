@@ -7,7 +7,7 @@ export { catalogVendors } from "./vendor-data.mjs";
 export class CaseInputError extends Error {}
 export function check(ok, message) { if (!ok) throw new CaseInputError(message); }
 export const SAMPLE = samples[0].starter;
-export const HELP = `Site engineer: ${SAMPLE}\nUse RFQ instead of DEMO RFQ for a standard case. Separate BOQ items with semicolons. +N means N calendar days from today. The project and address come from your assignment. Nothing is emailed until the project manager reviews the BOQ and types the SEND command. Use STATUS <case ID> for progress.`;
+export const HELP = `Site engineer: RFQ RUN STEEL or RFQ RUN WATERPROOFING opens a two-vendor workflow run using WhatsApp and Gmail. Instructions: https://clay-procurement.teamclay-d326e1.workers.dev/runs\nStandard intake: RFQ | MAT010 100 bags | Tower 2 | need +14 | reply +3. Separate items with semicolons. +N means N calendar days from today. The PM reviews the BOQ and drafts and confirms dispatch from their private WhatsApp link or with SEND. Use STATUS <case ID> for progress.`;
 function dateValue(text, today) {
   if (/^\+\d{1,3}$/.test(text)) return new Date(Date.parse(today) + Number(text) * 86400000).toISOString().slice(0, 10);
   if (!/^\d{4}-\d\d-\d\d$/.test(text) || !Number.isFinite(Date.parse(text)) ||
@@ -49,6 +49,17 @@ export function captureScope(db, root, projectId, fields, now = Date.now()) {
     vendors: catalogVendors(root, segment) };
 }
 export const linesForQuote = c => c.scope.lines.filter(l => l.qty > 0);
+export function bindRun(scope,run){
+  if(!run)return scope;
+  check(scope.segment===run.key&&scope.lines.length===run.lines.length&&run.lines.every(l=>scope.lines.some(s=>s.code===l.code)),
+    `This ${run.label} run uses ${run.lines.map(l=>l.code).join(" and ")}. Check the BOQ codes.`);
+  const vendors=run.vendors.map(id=>{
+    const v=scope.vendors.find(x=>x.id===id);
+    check(v,`Configure ${id} as a ${run.key} vendor in data/vendors.csv before starting this run.`);
+    return v;
+  });
+  return {...scope,runKey:run.key,vendors};
+}
 export const scopeSummary = c => c.scope.lines.map(l =>
   `${l.code} ${l.name} (${l.spec}): need ${l.requested}, stock ${l.stock}, quote ${l.qty} ${l.unit}`).join("\n");
 
@@ -67,9 +78,9 @@ export function renderRfq(template, c, vendor, pm) {
   }).replaceAll("\r\n", "\n");
   const match = /^To:[^\n]+\nSubject: ([^\n]+)\n\n([\s\S]+)$/.exec(rendered);
   if (!match) throw new Error("Invalid RFQ template");
-  const prefix = c.demo ? "[DEMO — no order] " : "";
+  const prefix = c.scope.runKey ? "[RFQ workflow run — no order] " : c.demo ? "[DEMO — no order] " : "";
   const format = lines.map(l => `${l.code}: <INR ex-GST rate> / ${l.unit}`).join("\n");
-  return { subject: prefix + match[1], text: (c.demo ? "Test RFQ only. Please use hypothetical terms; do not supply goods.\n\n" : "") +
+  return { subject: prefix + match[1], text: (c.scope.runKey ? "Two-vendor workflow check. Please reply with quotation terms for this exercise; do not supply goods.\n\n" : c.demo ? "Test RFQ only. Please use hypothetical terms; do not supply goods.\n\n" : "") +
     match[2].trim() + `\n\nCase/vendor: ${ref}. Reply in this thread from this address; put your terms above the quoted email.\n` +
     `Please copy these fields. Rates are INR excluding GST; freight is a single pre-tax amount. GST applies to goods plus freight. State any different basis as an exclusion.\n` +
     `${format}\nGST: <percent>%\nFreight: <INR amount, 0 if included>\nDelivery: <number> days\nPayment: <terms>\nExclusions: <none or list>\nSpec: <exact or describe deviation>\nThis RFQ is not a work order.` };

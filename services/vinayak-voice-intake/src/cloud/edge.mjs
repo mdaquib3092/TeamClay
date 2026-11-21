@@ -42,7 +42,7 @@ export default {async fetch(request,env){
     if(!["GET","POST","HEAD"].includes(request.method))return fail(405,"Method not allowed.");
     const p=u.pathname;
     if(request.method==="POST"&&(request.headers.get("origin")!==u.origin||request.headers.get("sec-fetch-site")==="cross-site"))return fail(403,"Submit from the Clay dashboard.");
-    if(p==="/"||p==="/demo"||p.startsWith("/demo/"))return await publicDesk(request,u,PUBLIC_SAMPLES);
+    if(p==="/"||p==="/demo"||p.startsWith("/demo/")||p==="/runs"||p.startsWith("/runs/"))return await publicDesk(request,u,PUBLIC_SAMPLES);
     if(p==="/activity"&&["GET","HEAD"].includes(request.method)){
       if(!activity||Date.now()>=activity.until)activity={until:Date.now()+15000,
         data:env.PRIVATE_ORIGIN.fetch(ORIGIN+"/public-progress",{headers:{"x-clay-origin":env.ORIGIN_KEY},signal:AbortSignal.timeout(4500)})

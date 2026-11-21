@@ -15,6 +15,7 @@ function display(d){revision=d.q;el('report').hidden=false;el('hint').hidden=tru
  for(const [k,l] of [['base','Goods subtotal'],['freight','Freight'],['tax','GST amount'],['landed','Total delivered incl. GST']])row(l,v=>v.terms?.landed==null&&['base','tax','landed'].includes(k)?'Not established':fmt(v.terms?.[k]));
  row('GST rate',v=>v.terms?.gst==null?'Unknown':v.terms.gst+'%');row('Delivery',v=>v.terms?.days==null?'Unknown':v.terms.days+' days');row('Payment',v=>v.terms?.payment||'Unknown');row('Exclusions / spec',v=>[v.terms?.exclusions,v.terms?.spec].filter(Boolean).join(' / ')||'Unknown');
  row('Source and eligibility',v=>[v.comparable?'Comparable':'Not eligible for recommendation',...v.issues,...(v.terms?.flags||[])].join('\n'));
+ if(d.vendors.some(v=>v.timing))row('Timing against need-by',v=>v.timing||'Unknown');
  row('Email sign-off',v=>v.signature||'No explicit sign-off identified');
  row('Sample history · unverified',v=>v.history?[v.history.orders+' orders',v.history.onTime==null?'on time unknown':v.history.onTime+'% on time',v.history.quality==null?'quality unknown':'quality '+v.history.quality+'/5'].join(' · '):'No recorded history');
  const sources=el('sources'),options=el('vendor');sources.replaceChildren();options.replaceChildren(new Option('All invited vendors','all'));

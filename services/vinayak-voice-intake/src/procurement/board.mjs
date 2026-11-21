@@ -22,7 +22,7 @@ export function caseDetails(flow, c) {
     WHERE requirement_id=? AND channel='whatsapp' AND direction='inbound' AND json_valid(body)
     ORDER BY id DESC LIMIT 40`,c.id).reverse();
   return {
-    id:c.id, demo:!!c.demo, created:c.created, stage:c.stage, project:c.scope.project, site:c.scope.site, segment:c.scope.segment,
+    id:c.id, demo:!!c.demo, runKey:c.scope.runKey||null,created:c.created, stage:c.stage, project:c.scope.project, site:c.scope.site, segment:c.scope.segment,
     neededBy:c.scope.needBy, deadline:c.scope.deadline, boqRev:c.boq_rev, quoteRev:c.quote_rev,
     owner:c.owner_id, pm:c.pm_id, hod:c.hod_id, selected:c.selected, rationale:c.rationale, lines:c.scope.lines,
     submission:flow.one("SELECT raw_message FROM requirements WHERE requirement_id=?",c.id)?.raw_message,

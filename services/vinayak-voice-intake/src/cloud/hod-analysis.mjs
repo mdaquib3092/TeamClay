@@ -1,7 +1,7 @@
 import {createHash,createHmac,randomBytes} from "node:crypto";
 import {DeskError} from "./pm-approval.mjs";
 import {authoredReply} from "../procurement/quote-terms.mjs";
-import {comparable} from "../procurement/quote-evidence.mjs";
+import {comparable,deliveryWindow} from "../procurement/quote-evidence.mjs";
 
 const hour=3600000, token=()=>randomBytes(32).toString("hex");
 const digest=s=>createHash("sha256").update(s).digest("hex");
@@ -56,7 +56,7 @@ export class HodAnalysis {
       analysis:this.flow.analysis(c,rows),vendors:rows.map(v=>{
         const source=v.source&&this.flow.one("SELECT received,body FROM wa_flow_replies WHERE case_id=? AND vendor_id=? AND gmail_id=?",id,v.id,v.source);
         return {id:v.id,name:v.name,terms:v.terms,history:v.history,issues:v.sourceFlags||[],signature:v.signature||null,
-          comparable:comparable(v),received:source?.received||null,reply:source?authoredReply(source.body).slice(0,8000):null};
+          comparable:comparable(v),timing:deliveryWindow(v.received,v.terms?.days,c.scope.needBy),received:source?.received||null,reply:source?authoredReply(source.body).slice(0,8000):null};
       }),notes:this.flow.all("SELECT vendor,note,created FROM wa_hod_analysis_notes WHERE case_id=? AND quote_rev=? ORDER BY rowid DESC LIMIT 30",id,c.quote_rev)};
   }
   note(id,s,input){

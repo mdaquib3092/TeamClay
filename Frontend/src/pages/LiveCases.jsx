@@ -74,7 +74,7 @@ function CaseAction({c,board}) {
 }
 
 function CasePanel({c,board}) {
-  return <article className="card live-panel"><div className="toolbar"><b>{c.id}</b><span className="chip s-rfq">{titles[c.stage]||c.stage}</span><span>{c.demo?"Demo case · real channels":"Standard case"} · B{c.boqRev} / Q{c.quoteRev}</span></div>
+  return <article className="card live-panel"><div className="toolbar"><b>{c.id}</b><span className="chip s-rfq">{titles[c.stage]||c.stage}</span><span>{c.runKey?"Workflow run · WhatsApp & Gmail":c.demo?"Demo case · real channels":"Standard case"} · B{c.boqRev} / Q{c.quoteRev}</span></div>
     <p>{c.project} · {c.site} · {c.segment} · Needed {c.neededBy} · Quote deadline {c.deadline}</p>
     <details><summary>Site engineer’s message and PM review</summary><Message from={staffName(board,c.owner)} to="Agent" text={c.submission}/>
       {c.review&&<Message from="Agent" to={staffName(board,c.pm)} text={c.review}/>}</details>
@@ -116,6 +116,7 @@ export default function LiveCases() {
       <div className="live-badges"><span className="chip s-rfq">WhatsApp {board.connections.whatsapp?"connected":"offline"}</span><span className="chip s-rfq">Gmail {board.connections.gmailAuthorised?"authorised":"unavailable"}</span>
         <span className="chip s-rfq">{board.sources.vendors.rows??"—"} vendor contacts · {board.sources.performance.matched??"—"} sample histories</span></div>
       {(board.workerError||board.sources.vendors.error||board.sources.performance.error)&&<p className="notice err">Needs attention: {board.workerError||board.sources.vendors.error||board.sources.performance.error}</p>}
+      <section className="card"><h2>Start a live workflow run</h2><p>The registered site engineer sends one WhatsApp message. The PM reviews the actual vendor drafts before Gmail dispatches them.</p><a href="https://clay-procurement.teamclay-d326e1.workers.dev/runs">Steel and waterproofing: messages for every handoff →</a></section>
       <section className="card"><h2>Test three procurement samples</h2><p>Choose a sample to see the messages at each handoff, including the full RFQs and the automatic HOD comparison.</p>
         <div className="live-steps" aria-label="Sample selection">{board.samples.map(s=><button type="button" className="btn" key={s.key} aria-pressed={sample===s.key} onClick={()=>setSample(s.key)}>{s.label}</button>)}</div>
         {guide&&<SampleRunner key={guide.key} guide={guide} board={board}/>}

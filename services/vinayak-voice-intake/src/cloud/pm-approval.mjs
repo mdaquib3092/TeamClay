@@ -62,7 +62,7 @@ export class PmApproval {
     const snap=digest(JSON.stringify([c.id,c.boq_rev,c.scope,drafts]));
     this.flow.run("UPDATE wa_pm_review_links SET reviewed=? WHERE id=?",snap,r.id);
     return {id,revision:c.boq_rev,snapshot:snap,stage:c.stage,project:c.scope.project,site:c.scope.site,needed:c.scope.needBy,deadline:c.scope.deadline,
-      boq:scopeSummary(c),pm:u.name,demo:!!c.demo,drafts,receipts:this.flow.all("SELECT target,state,accepted FROM wa_flow_outbox WHERE case_id=? AND kind='email' ORDER BY target",id)};
+      boq:scopeSummary(c),pm:u.name,demo:!!c.demo,runKey:c.scope.runKey||null,drafts,receipts:this.flow.all("SELECT target,state,accepted FROM wa_flow_outbox WHERE case_id=? AND kind='email' ORDER BY target",id)};
   }
   approve(id,token,body){
     return this.flow.tx(()=>{

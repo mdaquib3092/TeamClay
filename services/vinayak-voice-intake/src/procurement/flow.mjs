@@ -2,10 +2,11 @@ import fs from "node:fs";
 import path from "node:path";
 import { createHash } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
-import { CaseInputError, check, HELP, SAMPLE, captureScope, catalogVendors, formatMoney, linesForQuote, parseTerms, renderRfq, scopeSummary } from "./boq.mjs";
+import { CaseInputError, check, HELP, SAMPLE, bindRun, captureScope, catalogVendors, formatMoney, linesForQuote, parseTerms, renderRfq, scopeSummary } from "./boq.mjs";
 import { ROLE_POLICY } from "../roles.mjs";
 import { VendorDataError, vendorDirectory, availablePerformance, vendorSourceStatus } from "./vendor-data.mjs";
-import { sourceReview, comparable } from "./quote-evidence.mjs";
+import { sourceReview, comparable, deliveryWindow } from "./quote-evidence.mjs";
+import { fieldRuns, findRun, runFields, runCommand } from "./field-runs.mjs";
 
 const schema = fs.readFileSync(new URL("./schema.sql", import.meta.url), "utf8");
 const hash = s => createHash("sha256").update(s).digest("hex").slice(0, 12).toUpperCase();
@@ -16,7 +17,8 @@ const member = (users, id) => [...users.values()].find(u => u.user_id === id);
 const minimum = c => c.demo ? 2 : ROLE_POLICY.controls.minimumEligibleRfqVendors;
 const allowed = (u, c) => scopeOK(u, c) && ((u.role === "site_engineer" && u.user_id === c.owner_id) ||
   (u.role === "project_manager" && u.user_id === c.pm_id) || (u.role === "hod" && u.user_id === c.hod_id));
-const commands = /^(?:(?:DEMO\s+)?RFQ(?:\s*\||\s+HELP\b|$)|(?:ANALYSIS|ANALYSE|ANALYZE|PREVIEW|REVIEWLINK|SEND|STATUS|RECOMMEND|APPROVE|RETURN|CORRECT)\s+CASE-)/i;
+const commands = /^(?:(?:DEMO\s+)?RFQ(?:\s*\||\s+(?:HELP|RUN)\b|$)|(?:ANALYSIS|ANALYSE|ANALYZE|PREVIEW|REVIEWLINK|SEND|STATUS|RECOMMEND|APPROVE|RETURN|CORRECT)\s+CASE-)/i;
+const caseLabel = c => c.scope.runKey ? "[RFQ RUN] " : c.demo ? "[DEMO] " : "";
 const parse = r => r && ({ ...r, scope: JSON.parse(r.scope_json) });
 const clip = (s, n = 120) => String(s).replace(/\s+/g, " ").slice(0, n);
 function assigned(users, role, project) {
@@ -50,14 +52,14 @@ export class CaseFlow {
   }
   notify(c, key, role, text, q = null, stage = null) {
     this.enqueue(c, key, "whatsapp", role === "hod" ? c.hod_id : role === "project_manager" ? c.pm_id : c.owner_id,
-      role, { text: `${c.demo ? "[DEMO] " : ""}${c.id} · ${text}` }, q, stage);
+      role, { text: `${caseLabel(c)}${c.id} · ${text}` }, q, stage);
   }
   review(c) {
     const vendors = c.scope.vendors;
     return `BOQ B${c.boq_rev}: ${scopeSummary(c)}\nDeliver ${c.scope.site}, ${c.scope.project}; needed ${c.scope.needBy}; reply by ${c.scope.deadline}.\n` +
       `Segment: ${c.scope.segment}. ${vendors.map(v => `${v.id} ${v.name} <${v.email}>`).join("; ")}.\n` +
       (vendors.length ? `Read the generated RFQ: PREVIEW ${c.id} B${c.boq_rev} ${vendors[0].id}\n` : "") +
-      (vendors.length >= minimum(c) ? `If the BOQ, item mappings and eligibility of these ${c.demo ? "test " : ""}recipients are correct, type:\nSEND ${c.id} B${c.boq_rev} ${vendors.map(v => v.id).join(" ")}` :
+       (vendors.length >= minimum(c) ? `If the BOQ, item mappings and eligibility of these ${c.scope.runKey ? "workflow-run " : c.demo ? "test " : ""}recipients are correct, type:\nSEND ${c.id} B${c.boq_rev} ${vendors.map(v => v.id).join(" ")}` :
         `Blocked: ${minimum(c)} distinct eligible vendors required; only ${vendors.length} configured. Update the segment roster and correct the case.`);
   }
   prepareDrafts(c, pm) {
@@ -69,9 +71,9 @@ export class CaseFlow {
     for (const l of c.scope.lines) this.run(`INSERT INTO requirement_lines(requirement_id,material_code,qty,unit,qty_available,shortfall,rfq_qty,action)
       VALUES(?,?,?,?,?,?,?,?)`, c.id, l.code, l.requested, l.unit, l.stock, l.qty, l.qty, l.qty ? "QUOTE_SHORTFALL" : "IN_STOCK");
   }
-  create(msg, user, users, fields, demo) {
+  create(msg, user, users, fields, demo, run) {
     check(user.role === "site_engineer", "The registered site engineer opens a requirement.");
-    const project = user.project_id, scope = captureScope(this.db, this.root, project, fields);
+    const project = user.project_id, scope = bindRun(captureScope(this.db, this.root, project, fields),run);
     const pm = assigned(users, "project_manager", project), hod = assigned(users, "hod", project);
     const id = `CASE-${hash(msg.id)}`, stamp = now(), stockOnly = scope.lines.every(l => l.qty === 0);
     this.run(`INSERT INTO requirements(requirement_id,project_id,raised_by,channel,raw_message,needed_by,status,created_at)
@@ -83,7 +85,7 @@ export class CaseFlow {
       this.prepareDrafts(c,member(users,pm));
       this.notify(c, "review:B1", "project_manager", this.review(c), null, "BOQ_REVIEW");
     }
-    return { c, reply: `${c.demo ? "DEMO " : ""}${id} created. ${scopeSummary(c)}\n${stockOnly ? "Fully covered by the stock snapshot; no RFQ needed." : "BOQ sent to the project manager’s review queue."}` };
+    return { c, reply: `${caseLabel(c)}${id} created. ${scopeSummary(c)}\n${stockOnly ? "Fully covered by the stock snapshot; no RFQ needed." : "BOQ sent to the project manager’s review queue."}` };
   }
   dispatch(c, user, words, route = "whatsapp") {
     check(user.role === "project_manager" && allowed(user,c), "Only the assigned project manager confirms vendor eligibility and dispatch.");
@@ -109,7 +111,7 @@ export class CaseFlow {
     this.run("UPDATE wa_flow_cases SET stage='DISPATCHING' WHERE id=?", c.id);
     this.run("INSERT INTO approvals(requirement_id,stage,user_id,status,note,decided_via,decided_at) VALUES(?,'pm',?,'APPROVED',?,?,?)",
       c.id, user.user_id, `BOQ B${c.boq_rev}, ERP codes and eligibility checked: ${ids.join(", ")}`, route, now());
-    return `Confirmed ${c.id} B${c.boq_rev}. Queued ${selected.length} individual ${c.demo ? "DEMO " : ""}RFQ emails. I’ll report Gmail acceptance.`;
+    return `Confirmed ${c.id} B${c.boq_rev}. Queued ${selected.length} individual ${c.scope.runKey ? "workflow-run " : c.demo ? "DEMO " : ""}RFQ emails. I’ll report Gmail acceptance.`;
   }
   comparison(c) {
     return this.one("SELECT data FROM wa_flow_snapshots WHERE case_id=? AND quote_rev=?", c.id, c.quote_rev)?.data;
@@ -130,7 +132,9 @@ export class CaseFlow {
     const parts = raw.split("|").map(s => s.trim()), [verb, id, ...words] = parts[0].toUpperCase().split(/\s+/);
     try {
       if (/^(?:RFQ(?: HELP)?|DEMO RFQ HELP|\/(?:rfq|procurement)(?: help)?)$/i.test(raw)) return HELP;
-      const isNew = /^(?:DEMO )?RFQ$/i.test(parts[0]);
+      const named=/^RFQ\s+RUN\b/i.test(parts[0]),run=named&&findRun(/^RFQ\s+RUN\s+(\w+)$/i.exec(parts[0])?.[1]?.toLowerCase());
+      check(!named||run,"Choose RFQ RUN STEEL or RFQ RUN WATERPROOFING.");
+      const isNew = named || /^(?:DEMO )?RFQ$/i.test(parts[0]);
       const initial = !isNew && this.get(id);
       if (!isNew) check(initial && allowed(user, initial), "No accessible case with that reference.");
       if (["SEND","RECOMMEND","APPROVE","RETURN"].includes(verb)) check(msg.channel === "text", "Type the decision command from your registered WhatsApp number; a transcript cannot authorise it.");
@@ -141,7 +145,7 @@ export class CaseFlow {
       }
       return this.tx(() => {
         let c = initial && this.get(id), reply;
-        if (isNew) ({ c, reply } = this.create(msg, user, users, parts.slice(1), /^DEMO/i.test(parts[0])));
+        if (isNew) ({ c, reply } = this.create(msg, user, users, run&&parts.length===1?runFields(run):parts.slice(1), named||/^DEMO/i.test(parts[0]),run));
         else if (verb === "STATUS") reply = this.statusText(c, user);
         else if (["ANALYSIS","ANALYSE","ANALYZE"].includes(verb)) {
           check(["hod","project_manager"].includes(user.role),"Quote comparisons are available to the assigned PM and HOD.");
@@ -172,7 +176,7 @@ export class CaseFlow {
         }
         else if (verb === "CORRECT") {
           check(user.role === "site_engineer" && ["BOQ_REVIEW","IN_STOCK"].includes(c.stage) && words[0] === `B${c.boq_rev}`, "Only the site engineer can correct the current unissued BOQ revision.");
-          const s = captureScope(this.db, this.root, c.project_id, parts.slice(1));
+          const s = bindRun(captureScope(this.db, this.root, c.project_id, parts.slice(1)),findRun(c.scope.runKey));
           const covered = s.lines.every(l => !l.qty);
           this.run("UPDATE wa_flow_cases SET scope_json=?,boq_rev=boq_rev+1,stage=? WHERE id=?", JSON.stringify(s), covered ? "IN_STOCK" : "BOQ_REVIEW", id);
           this.run("UPDATE requirements SET needed_by=?,status=? WHERE requirement_id=?", s.needBy, covered ? "IN_STOCK" : "WAITING_PM", id);
@@ -234,7 +238,8 @@ export class CaseFlow {
         if (!t) return `${x.id} ${x.name}: awaiting reply.`;
         const hold=x.sourceFlags?.length?`\nSource clarification: ${x.sourceFlags.join(" ")}`:"";
         if (t.flags.length) return `${x.id} ${x.name}: not comparable — ${t.flags.join(", ")}.${t.exclusions ? ` Exclusions: ${clip(t.exclusions)}.` : ""}${hold}${h}`;
-        return `${x.id} ${x.name}: ${Object.entries(t.rates).map(([code,r]) => `${code} ${formatMoney(r)}/${c.scope.lines.find(l=>l.code===code).unit}`).join(", ")}; goods ${formatMoney(t.base)} + freight ${formatMoney(t.freight)} + GST ${t.gst}% (${formatMoney(t.tax)}) = landed ${formatMoney(t.landed)}. ${t.days} days; ${clip(t.payment)}; exclusions: ${clip(t.exclusions)}; spec: ${clip(t.spec)}.${h}${hold}`;
+        const timing=deliveryWindow(x.received,t.days,c.scope.needBy);
+        return `${x.id} ${x.name}: ${Object.entries(t.rates).map(([code,r]) => `${code} ${formatMoney(r)}/${c.scope.lines.find(l=>l.code===code).unit}`).join(", ")}; goods ${formatMoney(t.base)} + freight ${formatMoney(t.freight)} + GST ${t.gst}% (${formatMoney(t.tax)}) = landed ${formatMoney(t.landed)}. ${t.days} days${timing?`; ${timing}`:""}; ${clip(t.payment)}; exclusions: ${clip(t.exclusions)}; spec: ${clip(t.spec)}.${h}${hold}`;
       }).join("\n") + (() => {
         const sorted = eligible.sort((a,b) => a.terms.landed-b.terms.landed);
         if (sorted.length < ROLE_POLICY.controls.minimumReviewedComparableQuotations) return (priceTie?`\n${priced.length===2?"Both":"All"} priced offers show ${formatMoney(priced[0].terms.landed)}; price difference ${formatMoney(0)}.`:"")+"\nTwo comparable quotations are required. No vendor recommended.";
@@ -263,8 +268,8 @@ export class CaseFlow {
       const histories=availablePerformance(this.root);
       const invited=this.all("SELECT * FROM wa_flow_mail WHERE case_id=? ORDER BY vendor_id",c.id);
       return invited.map(v=>{
-        const replies=this.all("SELECT gmail_id,terms,body FROM wa_flow_replies WHERE case_id=? AND vendor_id=? ORDER BY received DESC,gmail_id DESC",c.id,v.vendor_id),r=replies[0];
-        return {id:v.vendor_id,name:v.vendor_name,source:r?.gmail_id||null,terms:r?JSON.parse(r.terms):null,history:histories.get(v.vendor_id)||null,...sourceReview(replies,v,invited)};
+        const replies=this.all("SELECT gmail_id,terms,body,received FROM wa_flow_replies WHERE case_id=? AND vendor_id=? ORDER BY received DESC,gmail_id DESC",c.id,v.vendor_id),r=replies[0];
+        return {id:v.vendor_id,name:v.vendor_name,source:r?.gmail_id||null,received:r?.received??null,terms:r?JSON.parse(r.terms):null,history:histories.get(v.vendor_id)||null,...sourceReview(replies,v,invited)};
       });
   }
   // Re-read exactly the recorded source; never manufacture a second vendor reply.
@@ -387,7 +392,7 @@ export class CaseFlow {
   }
   summary() {
     return {enabled:true,standardMinimum:ROLE_POLICY.controls.minimumEligibleRfqVendors,demoMinimum:2,
-      error:this.lastError,sample:SAMPLE,vendorSources:vendorSourceStatus(this.root),cases:this.all("SELECT id,demo,project_id,stage,boq_rev,quote_rev FROM wa_flow_cases ORDER BY created DESC LIMIT 30"),
+      error:this.lastError,sample:SAMPLE,runCommands:fieldRuns.map(runCommand),vendorSources:vendorSourceStatus(this.root),cases:this.all("SELECT id,demo,project_id,stage,boq_rev,quote_rev FROM wa_flow_cases ORDER BY created DESC LIMIT 30"),
       outbox:this.all("SELECT state,COUNT(*) n FROM wa_flow_outbox GROUP BY state")};
   }
 }

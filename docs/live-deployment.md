@@ -28,6 +28,14 @@
 - **Run sample** (cement, steel, waterproofing) rehearses all the steps using
   in-memory data and simulated transports. The public repo uses test contacts
   and synthetic workspace data; install your private configuration locally.
+- **Two live workflow runs:** <https://clay-procurement.teamclay-d326e1.workers.dev/runs>
+  contains the BOQs, what each vendor can reply, and the expected totals.
+  `RFQ RUN STEEL` uses V01/V02; `RFQ RUN WATERPROOFING` uses V10/V16. The
+  registered site engineer can send the short command or include the four
+  `|`-separated fields shown in the guide. The runs use the existing two-vendor
+  exercise mode, current project stock, real PM approval and real transports.
+  Each vendor must reply in its own invited inbox. The guide has no live
+  identities, messages or dispatch capability. Standard RFQs still require three.
 
 ## Rehearse from a checkout
 
