@@ -2,6 +2,7 @@ import { catalogVendors, VendorDataError, vendorSourceStatus } from "./vendor-da
 import { SAMPLE } from "./boq.mjs";
 import { ROLE_POLICY } from "../roles.mjs";
 import { samples } from "./samples.mjs";
+import { comparable } from "./quote-evidence.mjs";
 
 // A read model over the running worker's very same case DB. Public fields only:
 // no OAuth tokens, private conversations, raw mail headers or provider payloads.
@@ -30,7 +31,7 @@ export function caseDetails(flow, c) {
       const m = mail.find(x => x.vendor_id === v.id), q = snapshot.find(x => x.id === v.id);
       return { id:v.id,name:v.name,email:v.email,delivery:m?.state || "not_sent",accepted:m?.accepted || null,
         replied:m?.replied_at || null,replyCount:m?.reply_count || 0,pollError:m?.poll_error || null,
-        terms:q?.terms || null,history:q?.history || null,draft:c.scope.drafts?.[v.id] || null,
+        terms:q?.terms || null,history:q?.history || null,comparable:comparable(q),sourceFlags:q?.sourceFlags||[],signature:q?.signature||null,draft:c.scope.drafts?.[v.id] || null,
         reply:q?.source ? flow.one("SELECT substr(body,1,8000) text FROM wa_flow_replies WHERE gmail_id=? AND case_id=? AND vendor_id=?",q.source,c.id,v.id)?.text || null : null };
     }),
     report:snapshot.length ? flow.analysis(c,snapshot) : null, hodMessages:hod, decisions,staffMessages,

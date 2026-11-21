@@ -9,14 +9,16 @@ import {CaseInputError} from "../procurement/boq.mjs";
 import {VendorDataError} from "../procurement/vendor-data.mjs";
 import {loadUsers} from "../config.mjs";
 import {PmApproval,DeskError} from "./pm-approval.mjs";
+import {HodAnalysis} from "./hod-analysis.mjs";
 
 process.umask(0o077);
 const root=process.env.TEAMCLAY_ROOT||path.join(os.homedir(),"Downloads/TeamClay"),local="http://127.0.0.1:5174";
 const secret=fs.readFileSync(path.join(os.homedir(),"Library/Application Support/TeamClay/Cloudflare/origin.key"),"utf8").trim();
 const flow=new CaseFlow({root,recoverOutbox:false});
 const chat=new DatabaseSync(path.join(root,"data/voice_notes/voice-notes.sqlite"),{readOnly:true});
-const pm=new PmApproval(flow,{users:()=>loadUsers(path.join(root,"data/users.csv")),secret,
-  paused:id=>!!chat.prepare("SELECT paused FROM chat_preferences WHERE user_id=?").get(id)?.paused});
+const options={users:()=>loadUsers(path.join(root,"data/users.csv")),secret,
+  paused:id=>!!chat.prepare("SELECT paused FROM chat_preferences WHERE user_id=?").get(id)?.paused};
+const pm=new PmApproval(flow,options),hod=new HodAnalysis(flow,options);
 const deskRead=/^\/(?:api\/(?:integration|workspace|source|sources|capabilities|export)|local-api\/(?:catalog|status|roles|messages|voice-notes|procurement\/(?:cases|samples\/(?:cement|steel|waterproofing))))$/;
 const deskWrite=/^\/api\/(?:integration|actions|extract)$/;
 const json=(res,status,data,headers={})=>{res.writeHead(status,{"Content-Type":"application/json","Cache-Control":"no-store",...headers});res.end(JSON.stringify(data));};
@@ -50,6 +52,16 @@ const server=http.createServer(async(req,res)=>{
       const [b,a,d]=await Promise.all([fetch("http://127.0.0.1:8766/status").then(r=>r.json()),fetch("http://127.0.0.1:8767/api/status").then(r=>r.json()),
         fetch(local+"/api/integration",{headers:{cookie:await authorisedLocalWorkspace()},signal:AbortSignal.timeout(6500)})]);
       await d.body?.cancel();const ok=b.phase==="connected"&&a.caseWorkflow?.enabled===true&&d.ok;return json(res,ok?200:503,{ready:ok});
+    }
+    const h=/^\/hod\/(CASE-[A-F0-9]{12})\/(open|review|note)$/.exec(route);
+    if(h){
+      const [,id,op]=h,s=cookie("__Secure-clay-hod-read",req.headers.cookie);
+      if(req.method==="GET"&&op==="review")return json(res,200,hod.view(id,s));
+      if(req.method!=="POST"||req.headers["content-type"]?.split(";")[0]!=="application/json")return json(res,405,{error:"Use the HOD comparison page."});
+      let data;try{data=JSON.parse(await collect(req,4200));}catch{return json(res,400,{error:"Invalid request."});}
+      if(op==="open"){const t=hod.exchange(id,data?.link);return json(res,200,{opened:true},{"Set-Cookie":`__Secure-clay-hod-read=${t}; Path=/hod/${id}/; Max-Age=3600; Secure; HttpOnly; SameSite=Strict`});}
+      if(op==="note")return json(res,200,hod.note(id,s,data));
+      return json(res,405,{error:"Not supported."});
     }
     const m=/^\/pm\/(CASE-[A-F0-9]{12})\/(open|review|approve)$/.exec(route);
     if(m){

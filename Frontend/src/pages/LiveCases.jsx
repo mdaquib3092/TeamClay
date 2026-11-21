@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { request } from "../api.mjs";
 
 const base="/local-api/procurement";
-const titles={BOQ_REVIEW:"PM reviewing RFQ",IN_STOCK:"Covered by stock",DISPATCHING:"Sending RFQs",AWAITING_QUOTES:"Waiting for vendor replies",COMPARISON:"Comparison ready",WITH_HOD:"HOD decision pending",APPROVED:"HOD approved"};
+const titles={BOQ_REVIEW:"PM reviewing RFQ",IN_STOCK:"Covered by stock",DISPATCHING:"Sending RFQs",AWAITING_QUOTES:"Waiting for vendor replies",QUOTE_CLARIFICATION:"Replies received · clarification needed",COMPARISON:"Comparison ready",WITH_HOD:"HOD decision pending",APPROVED:"HOD approved"};
 const delivery={not_sent:"Draft",queued:"Queued",sending:"Sending",accepted:"Accepted",unconfirmed:"Acceptance unconfirmed",held:"Held",superseded:"Superseded",failed:"Failed"};
 const at=value=>value ? new Date(value).toLocaleString("en-IN") : "";
 const money=n=>n==null?"—":new Intl.NumberFormat("en-IN",{style:"currency",currency:"INR",maximumFractionDigits:2}).format(n/100);
@@ -52,7 +52,7 @@ function SampleRunner({guide,board}) {
 }
 
 function CaseAction({c,board}) {
-  const eligible=c.vendors.filter(v=>v.terms?.landed!=null);
+  const eligible=c.vendors.filter(v=>v.comparable);
   const [vendor,setVendor]=useState(eligible[0]?.id || ""),[note,setNote]=useState(""),[decision,setDecision]=useState("APPROVE");
   if(c.stage==="BOQ_REVIEW") {
     const enough=c.vendors.length >= (c.demo ? board.demoMinimum : board.standardMinimum);
@@ -81,11 +81,12 @@ function CasePanel({c,board}) {
     <h3>BOQ</h3><ul>{c.lines.map(l=><li key={l.code}>{l.code} · {l.name} · Requested {l.requested}, stock {l.stock}, RFQ <b>{l.qty} {l.unit}</b></li>)}</ul>
     <h3>Vendor RFQs and Gmail replies</h3><div className="tablewrap"><table><thead><tr><th>Invited vendor</th><th>Gmail dispatch</th><th>Replies</th><th>Landed total</th></tr></thead><tbody>
       {c.vendors.map(v=><tr key={v.id}><td>{v.id} · {v.name}<div className="small muted">{v.email}</div></td><td>{delivery[v.delivery]||v.delivery}<div className="small muted">{at(v.accepted)}</div></td>
-        <td>{v.replyCount} {v.pollError&&" · thread read needs attention"}<div className="small muted">{at(v.replied)}</div></td><td>{money(v.terms?.landed)}</td></tr>)}</tbody></table></div>
+        <td>{v.replyCount} {v.pollError&&" · thread read needs attention"}<div className="small muted">{at(v.replied)}</div></td><td>{money(v.terms?.landed)}{v.sourceFlags?.length>0&&<div className="small">{v.sourceFlags.join(" ")}</div>}</td></tr>)}</tbody></table></div>
     {c.vendors.map(v=><details key={v.id}><summary>{v.id} · RFQ email and latest vendor reply</summary>
       {v.draft && <Message from="RFQ" to={v.email} text={`Subject: ${v.draft.subject}\n\n${v.draft.text}`}/>}
       {v.replyCount ? <Message from={v.name} to="Procurement Gmail" text={v.reply || "Reply recorded; no usable plain text. Request clarification."}/> : <p>Awaiting a reply.</p>}</details>)}
     <h3>Analysis for {staffName(board,c.hod)}</h3>{c.report?<pre>{c.report}</pre>:<p>No vendor comparison yet.</p>}
+    {c.report&&<p className="small muted">The assigned HOD receives a one-tap WhatsApp link to compare both quotes, read the original replies and send a review note to the PM. To request the latest link, send <b>ANALYSIS {c.id}</b> from the registered HOD WhatsApp.</p>}
     {c.hodMessages.length ? c.hodMessages.map((m,i)=><details key={i}><summary>WhatsApp · Q{m.quote_rev} · {delivery[m.state]||m.state} {at(m.accepted)}</summary><pre>{m.text}</pre></details>):
       <p className="small muted">No HOD report queued yet. A comparison is sent automatically at {board.minimumQuotes} comparable replies; if all reply but terms are incomplete, an exception report is sent.</p>}
     {c.decisions.length>0&&<details><summary>Recorded reviews and decisions</summary>{c.decisions.map((d,i)=><p key={i}><b>{staffName(board,d.user_id)} · {d.status}</b> · {d.note} · {at(d.decided_at)}</p>)}</details>}

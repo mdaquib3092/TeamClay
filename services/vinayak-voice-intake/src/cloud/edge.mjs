@@ -26,13 +26,14 @@ async function owner(request,env){
   }catch{return false;}
 }
 function fail(status,error){return Response.json({error},{status,headers});}
-async function origin(request,env,target,pm=false){
+async function origin(request,env,target,role=null){
   const h=new Headers({"x-clay-origin":env.ORIGIN_KEY});
-  if(pm){const cookies=(request.headers.get("cookie")||"").split(";").map(s=>s.trim()).filter(s=>/^__Secure-clay-session=[a-f0-9]{64}$/.test(s));h.set("cookie",cookies.join("; "));}
+  const name=role==="pm"?"__Secure-clay-session":role==="hod"?"__Secure-clay-hod-read":null;
+  if(name){const cookies=(request.headers.get("cookie")||"").split(";").map(s=>s.trim()).filter(s=>s.startsWith(name+"=")&&/^[a-f0-9]{64}$/.test(s.slice(name.length+1)));h.set("cookie",cookies.join("; "));}
   if(request.headers.has("content-type"))h.set("content-type",request.headers.get("content-type"));
   const reply=await env.PRIVATE_ORIGIN.fetch(ORIGIN+target,{method:request.method,headers:h,body:request.method==="POST"?request.body:undefined,redirect:"manual"});
   const output=new Headers(headers);for(const k of ["content-type","content-disposition"])if(reply.headers.has(k))output.set(k,reply.headers.get(k));
-  if(pm)for(const c of reply.headers.getAll("Set-Cookie"))if(c.startsWith("__Secure-clay-"))output.append("set-cookie",c);
+  if(name)for(const c of reply.headers.getAll("Set-Cookie"))if(c.startsWith(name+"="))output.append("set-cookie",c);
   return new Response(reply.body,{status:reply.status,headers:output});
 }
 export default {async fetch(request,env){
@@ -51,18 +52,21 @@ export default {async fetch(request,env){
     if(p==="/healthz"&&request.method==="GET")return origin(request,env,"/healthz");
     // This unauthenticated shell contains no vendor/case information. All data
     // and mutations on its API require the case-bound PM verification session.
-    if(/^\/pm\/CASE-[A-F0-9]{12}\/?$/.test(p)&&request.method==="GET"){
+    if(/^\/(?:pm|hod)\/CASE-[A-F0-9]{12}\/?$/.test(p)&&request.method==="GET"){
       if(!p.endsWith("/"))return Response.redirect(u.origin+p+"/",302);
       const nonce=crypto.randomUUID().replaceAll("-","");
-      return new Response(PM_PAGE.replace('id="pm-script"',`id="pm-script" nonce="${nonce}"`),{headers:{...htmlHeaders,
+      const hod=p.startsWith("/hod/"),script=hod?"hod-script":"pm-script";
+      return new Response((hod?HOD_PAGE:PM_PAGE).replace(`id="${script}"`,`id="${script}" nonce="${nonce}"`),{headers:{...htmlHeaders,
         "content-security-policy":`default-src 'none'; script-src 'nonce-${nonce}'; style-src 'unsafe-inline'; connect-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'`}});
     }
-    const m=/^\/pm\/CASE-[A-F0-9]{12}\/(open|review|approve)$/.exec(p);
+    const m=/^\/(pm|hod)\/CASE-[A-F0-9]{12}\/(open|review|approve|note)$/.exec(p);
     if(m){
-      if(u.search||(m[1]==="review"?request.method!=="GET":request.method!=="POST"))return fail(405,"Use the PM review form.");
+      const [,role,op]=m;
+      if((role==="hod"&&op==="approve")||(role==="pm"&&op==="note"))return fail(404,"Unknown review route.");
+      if(u.search||(op==="review"?request.method!=="GET":request.method!=="POST"))return fail(405,"Use the review form.");
       if(request.method==="POST"&&Number(request.headers.get("content-length")||0)>4200)return fail(413,"Submission too large.");
-      if(m[1]==="open"&&env.LOGIN_LIMIT&&!(await env.LOGIN_LIMIT.limit({key:request.headers.get("cf-connecting-ip")||"unknown"})).success)return fail(429,"Try again in a minute.");
-      return origin(request,env,p,true);
+      if(op==="open"&&env.LOGIN_LIMIT&&!(await env.LOGIN_LIMIT.limit({key:request.headers.get("cf-connecting-ip")||"unknown"})).success)return fail(429,"Try again in a minute.");
+      return origin(request,env,p,role);
     }
     if(p!=="/desk"&&!p.startsWith("/desk/"))return fail(404,"Not found.");
     if(!(await owner(request,env)))return fail(403,"Sign in to the owner’s Cloudflare Access workspace.");

@@ -5,6 +5,7 @@ import { DatabaseSync } from "node:sqlite";
 import { CaseInputError, check, HELP, SAMPLE, captureScope, catalogVendors, formatMoney, linesForQuote, parseTerms, renderRfq, scopeSummary } from "./boq.mjs";
 import { ROLE_POLICY } from "../roles.mjs";
 import { VendorDataError, vendorDirectory, availablePerformance, vendorSourceStatus } from "./vendor-data.mjs";
+import { sourceReview, comparable } from "./quote-evidence.mjs";
 
 const schema = fs.readFileSync(new URL("./schema.sql", import.meta.url), "utf8");
 const hash = s => createHash("sha256").update(s).digest("hex").slice(0, 12).toUpperCase();
@@ -15,7 +16,7 @@ const member = (users, id) => [...users.values()].find(u => u.user_id === id);
 const minimum = c => c.demo ? 2 : ROLE_POLICY.controls.minimumEligibleRfqVendors;
 const allowed = (u, c) => scopeOK(u, c) && ((u.role === "site_engineer" && u.user_id === c.owner_id) ||
   (u.role === "project_manager" && u.user_id === c.pm_id) || (u.role === "hod" && u.user_id === c.hod_id));
-const commands = /^(?:(?:DEMO\s+)?RFQ(?:\s*\||\s+HELP\b|$)|(?:PREVIEW|REVIEWLINK|SEND|STATUS|RECOMMEND|APPROVE|RETURN|CORRECT)\s+CASE-)/i;
+const commands = /^(?:(?:DEMO\s+)?RFQ(?:\s*\||\s+HELP\b|$)|(?:ANALYSIS|ANALYSE|ANALYZE|PREVIEW|REVIEWLINK|SEND|STATUS|RECOMMEND|APPROVE|RETURN|CORRECT)\s+CASE-)/i;
 const parse = r => r && ({ ...r, scope: JSON.parse(r.scope_json) });
 const clip = (s, n = 120) => String(s).replace(/\s+/g, " ").slice(0, n);
 function assigned(users, role, project) {
@@ -142,6 +143,18 @@ export class CaseFlow {
         let c = initial && this.get(id), reply;
         if (isNew) ({ c, reply } = this.create(msg, user, users, parts.slice(1), /^DEMO/i.test(parts[0])));
         else if (verb === "STATUS") reply = this.statusText(c, user);
+        else if (["ANALYSIS","ANALYSE","ANALYZE"].includes(verb)) {
+          check(["hod","project_manager"].includes(user.role),"Quote comparisons are available to the assigned PM and HOD.");
+          const snapshot=this.comparison(c);
+          check(snapshot,"No vendor replies have been recorded for this case yet.");
+          const brief=this.analysis(c,JSON.parse(snapshot));
+          if(user.role==="hod"&&this.hodLinks){
+            const recent=this.one("SELECT 1 FROM wa_flow_outbox WHERE case_id=? AND id LIKE ? AND created>? LIMIT 1",id,`${id}:requested-analysis:%`,new Date(Date.now()-60000).toISOString());
+            check(!recent,"Your analysis was requested in the last minute. Use the latest report in this chat.");
+            this.notify(c,`requested-analysis:${msg.id}`,"hod",brief,c.quote_rev);
+            reply=`${id}: the Q${c.quote_rev} comparison and your private review link are queued for this WhatsApp.`;
+          }else reply=brief;
+        }
         else if (verb === "REVIEWLINK") {
           check(user.role==="project_manager"&&msg.channel==="text"&&c.stage==="BOQ_REVIEW","Only the assigned PM can request a link for a pending BOQ.");
           check(!!this.pmLinks,"Online review links are not configured. Use the displayed SEND command.");
@@ -177,8 +190,8 @@ export class CaseFlow {
           check(words[0] === `Q${c.quote_rev}` && parts.length === 2 && parts[1].length >= 2 && parts[1].length <= 500,
             "Use the current Q revision and add | followed by a human review note.");
           const data = JSON.parse(this.comparison(c)), v = words[1], note = parts[1];
-          if (verb !== "RETURN") check(data.filter(x => x.terms?.landed != null).length >= ROLE_POLICY.controls.minimumReviewedComparableQuotations &&
-            data.some(x => x.id === v && x.terms?.landed != null), "Choose a comparable vendor from the current snapshot.");
+          if (verb !== "RETURN") check(data.filter(comparable).length >= ROLE_POLICY.controls.minimumReviewedComparableQuotations &&
+            data.some(x => x.id === v && comparable(x)), "Choose a comparable vendor with no unresolved source flags from the current snapshot.");
           if (recommending) {
             this.run("UPDATE wa_flow_cases SET stage='WITH_HOD',selected=?,rationale=? WHERE id=?", v, note, id);
             this.run("UPDATE requirements SET status='WITH_HOD' WHERE requirement_id=?", id);
@@ -207,8 +220,10 @@ export class CaseFlow {
     }
   }
   analysis(c, data) {
-    const received = data.filter(x => x.terms).length, comparable = data.filter(x => x.terms?.landed != null).length;
-    return `Comparison Q${c.quote_rev} · BOQ B${c.boq_rev}: ${linesForQuote(c).map(l => `${l.qty} ${l.unit} ${l.code}`).join("; ")}. INR, same BOQ. Needed ${c.scope.needBy} at ${c.scope.site}.\n${received}/${data.length} vendors replied; ${comparable} comparable.\n` +
+    const received = data.filter(x => x.terms).length, eligible = data.filter(comparable);
+    const priced=data.filter(x=>x.terms?.landed!=null);
+    const priceTie=priced.length>=2&&priced.every(v=>v.terms.landed===priced[0].terms.landed);
+    return `Comparison Q${c.quote_rev} · BOQ B${c.boq_rev}: ${linesForQuote(c).map(l => `${l.qty} ${l.unit} ${l.code}`).join("; ")}. INR, same BOQ. Needed ${c.scope.needBy} at ${c.scope.site}.\n${received}/${data.length} vendors replied; ${eligible.length} comparable for recommendation.\n` +
       data.map(x => {
         const t = x.terms;
         const h = x.history ? " Sample history (unverified): " + [
@@ -217,11 +232,12 @@ export class CaseFlow {
           x.history.replyRate != null && `${x.history.replyRate}% reply rate`,
         ].filter(Boolean).join(", ") + "." : " No usable vendor history on file.";
         if (!t) return `${x.id} ${x.name}: awaiting reply.`;
-        if (t.flags.length) return `${x.id} ${x.name}: not comparable — ${t.flags.join(", ")}.${t.exclusions ? ` Exclusions: ${clip(t.exclusions)}.` : ""}${h}`;
-        return `${x.id} ${x.name}: ${Object.entries(t.rates).map(([code,r]) => `${code} ${formatMoney(r)}/${c.scope.lines.find(l=>l.code===code).unit}`).join(", ")}; GST ${t.gst}%, freight ${formatMoney(t.freight)}; landed ${formatMoney(t.landed)}. ${t.days} days; ${clip(t.payment)}; exclusions: ${clip(t.exclusions)}.${h}`;
+        const hold=x.sourceFlags?.length?`\nSource clarification: ${x.sourceFlags.join(" ")}`:"";
+        if (t.flags.length) return `${x.id} ${x.name}: not comparable — ${t.flags.join(", ")}.${t.exclusions ? ` Exclusions: ${clip(t.exclusions)}.` : ""}${hold}${h}`;
+        return `${x.id} ${x.name}: ${Object.entries(t.rates).map(([code,r]) => `${code} ${formatMoney(r)}/${c.scope.lines.find(l=>l.code===code).unit}`).join(", ")}; goods ${formatMoney(t.base)} + freight ${formatMoney(t.freight)} + GST ${t.gst}% (${formatMoney(t.tax)}) = landed ${formatMoney(t.landed)}. ${t.days} days; ${clip(t.payment)}; exclusions: ${clip(t.exclusions)}; spec: ${clip(t.spec)}.${h}${hold}`;
       }).join("\n") + (() => {
-        const sorted = data.filter(x => x.terms?.landed != null).sort((a,b) => a.terms.landed-b.terms.landed);
-        if (sorted.length < ROLE_POLICY.controls.minimumReviewedComparableQuotations) return "\nAwaiting comparable quotes; no recommendation.";
+        const sorted = eligible.sort((a,b) => a.terms.landed-b.terms.landed);
+        if (sorted.length < ROLE_POLICY.controls.minimumReviewedComparableQuotations) return (priceTie?`\n${priced.length===2?"Both":"All"} priced offers show ${formatMoney(priced[0].terms.landed)}; price difference ${formatMoney(0)}.`:"")+"\nTwo comparable quotations are required. No vendor recommended.";
         const ties = sorted.filter(v => v.terms.landed === sorted[0].terms.landed);
         const difference = ties.length === 1 ? ` (${formatMoney(sorted[1].terms.landed - sorted[0].terms.landed)} below ${sorted[1].id})` : "";
         return `\n${ties.length > 1 ? "Lowest price tied" : "Lowest comparable landed price"}: ${ties.map(v=>v.id).join(", ")}${difference}. PM reviews scope, terms and lead time before recommending.`;
@@ -237,29 +253,71 @@ export class CaseFlow {
       const latest = this.one("SELECT gmail_id FROM wa_flow_replies WHERE case_id=? AND vendor_id=? ORDER BY received DESC,gmail_id DESC LIMIT 1", c.id,inv.vendor_id);
       if(latest.gmail_id !== mail.id) return;
       this.run("UPDATE rfq_recipients SET replied_at=? WHERE rfq_id=? AND vendor_id=?",new Date(mail.received).toISOString(),inv.rfq_id,inv.vendor_id);
+      const data=this.comparisonRows(c), flags=[...terms.flags,...data.find(v=>v.id===inv.vendor_id).sourceFlags];
       for(const l of linesForQuote(c)) this.run(`INSERT INTO quotes(rfq_id,vendor_id,material_code,rate_as_quoted,unit_as_quoted,gst_included,rate_ex_gst_per_unit,delivery_days,payment_terms,spec_match,flags,raw_message,received_at)
-        VALUES(?,?,?,?,?,'no',?,?,?,?,?,?,?)`,inv.rfq_id,inv.vendor_id,l.code,terms.rates[l.code]!=null?terms.rates[l.code]/100:null,l.unit,terms.rates[l.code]!=null?terms.rates[l.code]/100:null,terms.days,terms.payment||null,+/^exact|^as specified/i.test(terms.spec),JSON.stringify(terms.flags),mail.text||"",new Date(mail.received).toISOString());
-      this.publishComparison(c);
+        VALUES(?,?,?,?,?,'no',?,?,?,?,?,?,?)`,inv.rfq_id,inv.vendor_id,l.code,terms.rates[l.code]!=null?terms.rates[l.code]/100:null,l.unit,terms.rates[l.code]!=null?terms.rates[l.code]/100:null,terms.days,terms.payment||null,+/^exact|^as specified/i.test(terms.spec),JSON.stringify(flags),mail.text||"",new Date(mail.received).toISOString());
+      this.publishComparison(c,data);
     });
   }
-  publishComparison(c) {
+  comparisonRows(c){
       const histories=availablePerformance(this.root);
-      const data=this.all("SELECT * FROM wa_flow_mail WHERE case_id=? ORDER BY vendor_id",c.id).map(v=>{
-        const r=this.one("SELECT gmail_id,terms FROM wa_flow_replies WHERE case_id=? AND vendor_id=? ORDER BY received DESC,gmail_id DESC LIMIT 1",c.id,v.vendor_id);
-        return {id:v.vendor_id,name:v.vendor_name,source:r?.gmail_id||null,terms:r?JSON.parse(r.terms):null,history:histories.get(v.vendor_id)||null};
+      const invited=this.all("SELECT * FROM wa_flow_mail WHERE case_id=? ORDER BY vendor_id",c.id);
+      return invited.map(v=>{
+        const replies=this.all("SELECT gmail_id,terms,body FROM wa_flow_replies WHERE case_id=? AND vendor_id=? ORDER BY received DESC,gmail_id DESC",c.id,v.vendor_id),r=replies[0];
+        return {id:v.vendor_id,name:v.vendor_name,source:r?.gmail_id||null,terms:r?JSON.parse(r.terms):null,history:histories.get(v.vendor_id)||null,...sourceReview(replies,v,invited)};
       });
+  }
+  // Re-read exactly the recorded source; never manufacture a second vendor reply.
+  // Existing comparison snapshots, raw mail, send receipts and decisions are immutable.
+  reanalyseSavedReplies(id,boqRev,quoteRev){
+    return this.tx(()=>{
+      const c=this.get(id);check(c&&c.boq_rev===boqRev&&c.quote_rev===quoteRev,"Case changed; inspect its current revision.");
+      const old=JSON.parse(this.comparison(c)||"[]"),changed=[];
+      check(old.some(x=>x.source),"There are no recorded supplier replies to reanalyse.");
+      for(const x of old.filter(v=>v.source)){
+        const r=this.one("SELECT r.*,m.rfq_id FROM wa_flow_replies r JOIN wa_flow_mail m USING(case_id,vendor_id) WHERE r.gmail_id=? AND r.case_id=? AND r.vendor_id=?",x.source,id,x.id);
+        check(r,"Cannot trace a quote to the recorded Gmail reply.");
+        const latest=this.one("SELECT gmail_id FROM wa_flow_replies WHERE case_id=? AND vendor_id=? ORDER BY received DESC,gmail_id DESC LIMIT 1",id,x.id);
+        check(latest.gmail_id===r.gmail_id,"Newer supplier reply exists.");
+        const t=parseTerms(r.body,linesForQuote(c)),next=JSON.stringify(t);
+        if(next===r.terms)continue;
+        for(const l of linesForQuote(c)){
+          const rate=t.rates[l.code]!=null?t.rates[l.code]/100:null;
+          const match=[r.rfq_id,r.vendor_id,l.code,new Date(r.received).toISOString(),r.body];
+          const affected=this.run(`UPDATE quotes SET rate_as_quoted=?,rate_ex_gst_per_unit=?,delivery_days=?,payment_terms=?,spec_match=?,flags=?
+            WHERE rfq_id=? AND vendor_id=? AND material_code=? AND received_at=? AND raw_message=?`,rate,rate,t.days,t.payment||null,+/^(?:exact|as specified)/i.test(t.spec),JSON.stringify(t.flags),...match);
+          check(affected.changes===1,"Cannot uniquely match the original quote line.");
+        }
+        this.run("UPDATE wa_flow_replies SET terms=? WHERE gmail_id=?",next,r.gmail_id);
+        changed.push({vendor:x.id,gmailId:r.gmail_id,previous:JSON.parse(r.terms),revised:t});
+      }
+      const data=this.comparisonRows(c);
+      // Mirror the same evidence hold in the shared normalized quotes table.
+      // This alignment alone does not create a new quote revision or alert.
+      for(const v of data.filter(v=>v.source)){
+        const source=this.one("SELECT r.body,r.received,m.rfq_id FROM wa_flow_replies r JOIN wa_flow_mail m USING(case_id,vendor_id) WHERE r.case_id=? AND r.vendor_id=? AND r.gmail_id=?",id,v.id,v.source);
+        const flags=JSON.stringify([...v.terms.flags,...v.sourceFlags]);
+        this.run("UPDATE quotes SET flags=? WHERE rfq_id=? AND vendor_id=? AND received_at=? AND raw_message=? AND flags IS NOT ?",flags,source.rfq_id,v.id,new Date(source.received).toISOString(),source.body,flags);
+      }
+      if(!changed.length&&old.length===data.length&&data.every((x,i)=>JSON.stringify(x.sourceFlags)===JSON.stringify(old[i]?.sourceFlags||[])))return c.quote_rev;
+      this.event(c,"system","internal","case_service","case",{action:"reanalyse_saved_replies",fromRevision:c.quote_rev,toRevision:c.quote_rev+1,changed},"recorded");
+      this.publishComparison(c,data,`Updated analysis of the original supplier replies (replaces Q${c.quote_rev}).\n`);
+      return c.quote_rev+1;
+    });
+  }
+  publishComparison(c,data=this.comparisonRows(c),prefix="") {
       const allSent=this.one("SELECT COUNT(*) n FROM wa_flow_mail WHERE case_id=? AND thread_id IS NOT NULL",c.id).n===data.length;
-      const ready=allSent && data.filter(x=>x.terms?.landed!=null).length>=ROLE_POLICY.controls.minimumReviewedComparableQuotations;
-      const stage=ready?"COMPARISON":allSent?"AWAITING_QUOTES":"DISPATCHING";
+      const ready=allSent && data.filter(comparable).length>=ROLE_POLICY.controls.minimumReviewedComparableQuotations;
+      const stage=ready?"COMPARISON":allSent?(data.every(x=>x.terms)?"QUOTE_CLARIFICATION":"AWAITING_QUOTES"):"DISPATCHING";
       const superseded=["WITH_HOD","APPROVED"].includes(c.stage);
       this.run("UPDATE wa_flow_cases SET quote_rev=quote_rev+1,stage=?,selected=NULL,rationale=NULL WHERE id=?",stage,c.id);
       if(allSent)this.run("UPDATE requirements SET status='REPLIES_IN' WHERE requirement_id=?",c.id);
       c=this.get(c.id);this.run("INSERT INTO wa_flow_snapshots VALUES(?,?,?)",c.id,c.quote_rev,JSON.stringify(data));
-      const brief=this.analysis(c,data);
+      const brief=prefix+this.analysis(c,data);
       this.notify(c,`quote:${c.quote_rev}:pm`,"project_manager",brief+(ready?`\nWhen reviewed, type RECOMMEND ${c.id} Q${c.quote_rev} <vendor ID> | your rationale`:
-        "\nMissing/changed terms? Have the vendor reply with their complete revised quotation in this RFQ thread."),c.quote_rev);
-      if(ready||superseded||data.every(x=>x.terms))this.notify(c,`quote:${c.quote_rev}:hod`,"hod",(superseded?"Prior review superseded by a vendor amendment.\n":"")+brief+
-        (ready?"\nFor information. The PM recommendation is required before approval.":"\nIncomplete comparison. Awaiting clarification; no decision requested."),c.quote_rev);
+        "\nRequest clarification from the flagged vendor in its own RFQ thread, including the full commercial terms."),c.quote_rev);
+      if(ready||superseded||data.every(x=>x.terms))this.notify(c,`quote:${c.quote_rev}:hod`,"hod",(superseded?"Prior recommendation superseded by the revised comparison.\n":"")+brief+
+        (ready?"\nFor information. The PM recommendation is required before approval.":"\nClarification pending; no decision requested."),c.quote_rev);
   }
   async refresh(inv) {
     const seen=new Set(this.all("SELECT gmail_id FROM wa_flow_replies WHERE case_id=? AND vendor_id=?",inv.case_id,inv.vendor_id).map(x=>x.gmail_id));
@@ -290,6 +348,10 @@ export class CaseFlow {
       if(this.pmLinks&&o.kind==="whatsapp"&&o.role==="project_manager"&&o.required_stage==="BOQ_REVIEW"){
         const token=this.pmLinks.issue(c.id,c.boq_rev,recipient);
         text+=`\n\nReview and approve on the dashboard:\nhttps://clay-procurement.teamclay-d326e1.workers.dev/pm/${c.id}/#review=${token}\nThis link is for you. Tap it to review the drafts; opening it does not send an RFQ.`;
+      }
+      if(this.hodLinks&&o.kind==="whatsapp"&&o.role==="hod"&&o.quote_rev>0){
+        const grant=this.hodLinks.issue(c.id,c.quote_rev,recipient);
+        text+=`\n\nOpen both vendor quotes, source replies and your HOD notes:\nhttps://clay-procurement.teamclay-d326e1.workers.dev/hod/${c.id}/#analysis=${grant}\nPrivate to you; no login or code required.`;
       }
       const receipt=o.kind==="email"?await this.mailbox.send(p):await this.sendStaff(recipient,text);
       if(o.kind==="email"&&(!receipt?.sent||!receipt.threadId||!receipt.messageId))throw new Error("unconfirmed Gmail send");

@@ -9,6 +9,7 @@ import { VoiceIntake } from "./intake.mjs";
 import { createServer } from "./server.mjs";
 import { CaseFlow } from "./procurement/flow.mjs";
 import { PmApproval } from "./cloud/pm-approval.mjs";
+import { HodAnalysis } from "./cloud/hod-analysis.mjs";
 import { RfqMailbox } from "./procurement/mail.mjs";
 import { readJson } from "./sarvam.mjs";
 
@@ -69,8 +70,11 @@ try {
           return {accepted:true,numberEnding:recipient.whatsapp.slice(-4)};
         } });
       const secretFile=path.join(os.homedir(),"Library/Application Support/TeamClay/Cloudflare/origin.key");
-      if(fs.existsSync(secretFile))intake.workflow.pmLinks=new PmApproval(intake.workflow,{
-        users:()=>loadUsers(config.usersCsv), secret:fs.readFileSync(secretFile,"utf8").trim(),paused:intake.workflow.pauseCheck});
+      if(fs.existsSync(secretFile)){
+        const linkOptions={users:()=>loadUsers(config.usersCsv),secret:fs.readFileSync(secretFile,"utf8").trim(),paused:intake.workflow.pauseCheck};
+        intake.workflow.pmLinks=new PmApproval(intake.workflow,linkOptions);
+        intake.workflow.hodLinks=new HodAnalysis(intake.workflow,linkOptions);
+      }
       if (!intake.setting("case_flow_activated")) intake.setSetting("case_flow_activated",new Date().toISOString());
     }
     server = createServer(intake, config.port);

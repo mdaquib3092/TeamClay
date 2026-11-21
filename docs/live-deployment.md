@@ -18,6 +18,13 @@
   Incoming replies must be from the reviewed address in that RFQ's Gmail thread.
   Two comparable replies automatically generate the HOD's WhatsApp comparison.
   This is separate from the HOD’s later vendor/rate decision.
+- The HOD's WhatsApp report includes a private one-tap side-by-side analysis
+  for that revision: BOQ rates, freight, GST, landed totals, commercial terms,
+  source replies and any attribution flags. They can save a review note for
+  the PM; it is not an approval. `ANALYSIS <case-id>` requests the latest link
+  from the assigned HOD WhatsApp. A priced reply signed by a different invited
+  vendor remains visible for analysis, but is not counted toward the
+  recommendation quorum until clarified in its original email thread.
 - **Run sample** (cement, steel, waterproofing) rehearses all the steps using
   in-memory data and simulated transports. The public repo uses test contacts
   and synthetic workspace data; install your private configuration locally.

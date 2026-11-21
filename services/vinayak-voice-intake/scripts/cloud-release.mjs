@@ -23,7 +23,7 @@ export async function cloudRelease(root) {
   const dist=path.join(root,"Frontend/dist");
   const files={"/":fs.readFileSync(path.join(dist,"index.html"),"utf8").replaceAll('href="./assets/','href="/desk/assets/').replaceAll('src="./assets/','src="/desk/assets/')};
   for(const name of fs.readdirSync(path.join(dist,"assets")))if(/^[\w.-]+\.(js|css)$/.test(name))files["/assets/"+name]=fs.readFileSync(path.join(dist,"assets",name),"utf8");
-  const source=`const FILES=${JSON.stringify(files)};\nconst PM_PAGE=${JSON.stringify(read("../src/cloud/pm.html"))};\nconst PUBLIC_SAMPLES=${JSON.stringify(await publicSamples(root))};\n${read("../src/cloud/edge.mjs")}`;
+  const source=`const FILES=${JSON.stringify(files)};\nconst PM_PAGE=${JSON.stringify(read("../src/cloud/pm.html"))};\nconst HOD_PAGE=${JSON.stringify(read("../src/cloud/hod.html"))};\nconst PUBLIC_SAMPLES=${JSON.stringify(await publicSamples(root))};\n${read("../src/cloud/edge.mjs")}`;
   return {main:"cloud/edge.mjs",source,modules:[
     {filename:"cloud/public-desk.mjs",content:read("../src/cloud/public-desk.mjs"),contentType:"application/javascript+module"},
     {filename:"procurement/quote-terms.mjs",content:read("../src/procurement/quote-terms.mjs"),contentType:"application/javascript+module"},
