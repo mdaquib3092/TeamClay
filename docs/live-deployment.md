@@ -50,6 +50,20 @@ node --test services/vinayak-voice-intake/tests/*.test.mjs
 
 ## Local services
 
+**Site request → PM review without commands.** A registered site engineer
+can text or dictate “I need 10 bags of PPC cement” to the WhatsApp agent.
+It keeps a draft for that sender and project for seven days, uses catalog
+names/specs and asks one question at a time about an ambiguous item, amount,
+delivery point or needed-by date. “Project address” uses the assigned project.
+If no quote deadline is supplied, the recap proposes tomorrow or the material
+need-by date, whichever is earlier. The engineer can change the details or
+cancel. A clear **yes after the recap** records the requirement, snapshots
+stock, prepares an RFQ for each eligible recipient for the outstanding
+quantity and queues the assigned PM’s review notice. Different segments get
+separate cases; a stock-covered request is recorded without a vendor RFQ.
+Use `note: ...` for an extra project or technical instruction. The site
+confirmation is not permission to send vendor mail or issue a purchase order.
+
 The registered staff WhatsApp also answers data questions without a case ID,
 by text or transcribed voice. `STOCK` returns the whole assigned site's stock
 list; ask `STOCK MAT020`, “How much PPC cement is in stock?” or “Which items
@@ -77,6 +91,15 @@ backups and other users’ voice/chat records are not procurement master data.
    Start `start-staff-bridge.sh`, pair at `http://127.0.0.1:8766` and start
    `start-agent.sh`. Set `WHATSAPP_SESSION_ROOT` to reuse an existing session.
    Restart the bridge from the current roster after a staff number changes.
+   For continuous operation on a paired Mac, stop the two foreground staff
+   processes while idle, then run
+   `python3 services/vinayak-voice-intake/scripts/install-macos-agents.py --team-root "$PWD" --session-root "<existing bridge folder>"`.
+   Use `--runtime` if the compiled bridge and worker run from a different
+   checkout. The `com.teamclay.staff-bridge` and `com.teamclay.procurement-worker`
+   LaunchAgents start at user login and restart after exit. A known bridge
+   outage leaves unsent WhatsApp replies queued; ambiguous attempted sends
+   still require reconciliation. The paired account, a logged-in awake Mac
+   and network connectivity are required for live messages.
 4. In `Frontend`, copy `.env.example` to `.env.local`, set `CLAY_SOURCE_APP` to the
    absolute `services/vinayak-procurement` directory, and run `npm run dev`.
    Open `http://127.0.0.1:5174/#live-cases`.

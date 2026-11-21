@@ -153,7 +153,14 @@ export class ConversationEngine {
     }
     if(workflowActive){
       try {
-        const reply=await this.intake.workflow.handle(message,user,users);
+        // Only this engineer's recent inbound words may supply the referent
+        // of “order it”. Old bot answers and other people's cases are not BOQ data.
+        const prior=user.role==="site_engineer"?this.db.prepare(`SELECT user_text FROM chat_messages
+          WHERE user_id=? AND phone=? AND role=? AND project_id=? AND chat_jid=? AND channel IN ('text','voice')
+          AND received_at BETWEEN ? AND ? AND rowid<(SELECT rowid FROM chat_messages WHERE id=?)
+          ORDER BY received_at DESC,rowid DESC LIMIT 6`).all(user.user_id,user.whatsapp,user.role,user.project_id,message.chat_jid,
+            new Date(Date.parse(message.received_at)-3600000).toISOString(),message.received_at,message.id).map(x=>x.user_text):[];
+        const reply=await this.intake.workflow.handle(message,user,users,prior);
         if(reply!==null){this.update(message.id,{status:"ready",reply_kind:"workflow",assistant_reply:reply});return true;}
       } catch {
         this.update(message.id,{status:"ready",reply_kind:"workflow",error_code:"case_workflow_error",
@@ -263,12 +270,12 @@ export class ConversationEngine {
       counts: Object.fromEntries(this.db.prepare("SELECT status,COUNT(*) AS count FROM chat_messages GROUP BY status")
         .all().map(row => [row.status, row.count])) };
   }
-  async tick() {
+  async tick(whatsappReady=true) {
     try {
       const users = loadUsers(this.config.usersCsv);
       this.discover(users);
       await this.generateOne(users);
-      await this.sendOne();
+      if(whatsappReady)await this.sendOne();
       this.exportMessages();
       this.error = null;
     } catch { this.error = "chat_paused_check_roster_or_database"; }

@@ -266,8 +266,8 @@ export class VoiceIntake {
     this.exportNote(note.id);
     return true;
   }
-  async tick() {
-    try { this.discover(); this.lastError = null; await this.processOne(); this.routeCompleted(); }
+  async tick(mediaReady=true) {
+    try { this.discover(); this.lastError = null; if(mediaReady)await this.processOne(); this.routeCompleted(); }
     catch { this.lastError = "intake_paused_check_users_or_source_database"; }
   }
   notes() {
@@ -288,7 +288,7 @@ export class VoiceIntake {
   status() {
     return { provider: "Sarvam", model: this.config.model, mode: "transcribe",
       transport: "rest_wav_or_batch", registeredStaff: this.users.size,
-      activatedAt: this.setting("activated_at"), lastScan: this.lastScan,
+      activatedAt: this.setting("activated_at"), lastScan: this.lastScan,staffBridgeReady:this.bridgeReady??null,
       error: this.lastError, automaticReplies: this.config.autoReplies === true, procurementWrites: !!this.workflow,
       chat: this.chat ? this.chat.status() : { enabled: false },
       roleProfilesConfigured: true, staffRoles: Object.keys(ROLE_POLICY.staffRoles),

@@ -8,6 +8,7 @@ import { VoiceIntake } from "../src/intake.mjs";
 import { DeepSeekClient } from "../src/deepseek.mjs";
 import { ProviderError } from "../src/sarvam.mjs";
 import { loadUsers } from "../src/config.mjs";
+import { rehearsal } from "../scripts/rfq-rehearsal.mjs";
 
 const roster = "user_id,name,role,project_id,whatsapp,email,language\n" +
   "S1,Site User,site_engineer,P1,+919123456781,s@test.local,all\n" +
@@ -100,6 +101,19 @@ test("a transcribed inventory question uses the same direct reply path, and a mi
   f.insert({content:"STOCK MAT001"});await f.intake.chat.tick();assert.match(f.sends.at(-1).message,/Cannot verify stock.csv/);
   assert.doesNotMatch(f.sends.at(-1).message,/0 bag/);
 });
+test("a verified WhatsApp voice requisition enters guided intake ahead of stock/chat; the final text queues the assigned PM review",async t=>{
+  const f=fixture(t,{knowledge:true}),team=[...loadUsers(f.config.usersCsv).values()],w=rehearsal({team});
+  t.after(()=>w.close());f.intake.workflow=w.flow;f.intake.setSetting("case_flow_activated","2000-01-01T00:00:00.000Z");
+  const row=f.insert({id:"voice-order",media_type:"audio",content:""});
+  f.intake.db.prepare(`INSERT INTO voice_notes(id,message_id,chat_jid,user_id,name,role,project_id,phone,language,received_at,created_at,updated_at,status,model,expected_sha,transcript)
+    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run("voice-order-note",row.id,row.chat_jid,"S1","Site User","site_engineer","P1","+919123456781","en-IN",row.timestamp,row.timestamp,row.timestamp,"transcribed","saaras:v4","fixture","I need 10 bags of PPC cement");
+  await f.intake.chat.tick();assert.match(f.sends.at(-1).message,/Site, where on site/);
+  for(const text of ["Tower 2","tomorrow","yes"]){f.insert({content:text});await f.intake.chat.tick();}
+  assert.ok(f.sends.every(s=>s.recipient==="919123456781"));assert.match(f.sends.at(-1).message,/CASE-.*RFQ drafts queued/);
+  assert.equal(f.calls.length,0);await w.flush();assert.equal(w.alerts[0].role,"project_manager");assert.equal(w.emails.length,0);
+  // This harness owns w's database, not VoiceIntake.close().
+  f.intake.workflow=null;
+});
 test("free-form reasoning only receives projected current source rows and keeps evidence on a format retry",async t=>{
   const f=fixture(t,{knowledge:true}),requests=[];
   f.intake.chat.client=new DeepSeekClient({deepseekKey:"fake",fetcher:async(_url,o)=>{
@@ -157,6 +171,12 @@ test("a roster/role change before dispatch prevents a ready reply from being sen
   await f.intake.chat.sendOne();
   assert.equal(f.sends.length, 0);
   assert.equal(f.intake.chat.messages()[0].error_code, "sender_permissions_changed");
+});
+test("a known offline bridge leaves the reply queued until reconnection and sends it once",async t=>{
+  const f=fixture(t,{knowledge:true});f.insert({content:"STOCK"});
+  await f.intake.chat.tick(false);assert.equal(f.sends.length,0);assert.equal(f.intake.chat.messages()[0].status,"ready");
+  await f.intake.chat.tick(true);await f.intake.chat.tick(true);
+  assert.equal(f.sends.length,1);assert.equal(f.intake.chat.messages()[0].status,"sent");
 });
 test("terminal voice failure notifies only the verified sender, once, without inventing a transcript", async (t) => {
   const f = fixture(t);

@@ -12,6 +12,7 @@ import { PmApproval } from "./cloud/pm-approval.mjs";
 import { HodAnalysis } from "./cloud/hod-analysis.mjs";
 import { RfqMailbox } from "./procurement/mail.mjs";
 import { readJson } from "./sarvam.mjs";
+import { staffBridgeReady } from "./bridge-ready.mjs";
 
 process.umask(0o077);
 const { values } = parseArgs({ options: {
@@ -91,8 +92,10 @@ try {
     if (config.chatEnabled) console.log(`Chat model: ${config.chatModel} (DeepSeek-V4.1-Flash-1017)`);
     console.log("The existing WhatsApp bridge must remain running. Only new incoming audio is processed.");
     while (!stopped) {
-      await Promise.all([intake.tick(), intake.chat?.tick()]);
-      if(intake.workflow && !intake.lastError) await intake.workflow.tick(intake.users);
+      const ready=!config.autoReplies||await staffBridgeReady();
+      intake.bridgeReady=ready;
+      await Promise.all([intake.tick(ready), intake.chat?.tick(ready)]);
+      if(intake.workflow && !intake.lastError) await intake.workflow.tick(intake.users,ready);
       await delay(2000);
     }
     await new Promise(resolve => server.close(resolve));

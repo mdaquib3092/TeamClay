@@ -22,6 +22,7 @@ PROCUREMENT WORKFLOW: ${JSON.stringify(ROLE_POLICY.workflow)}
 CONTROLS: ${JSON.stringify({ ...ROLE_POLICY.controls, automaticReplies: "controlled_by_the_verified_sender_dispatcher" })}
 
 CURRENT REAL CAPABILITIES:
+${workflowEnabled ? `A site engineer can start a real requirement in this chat by saying "I need 10 bags of PPC cement" or "I want to place an order". Guided intake saves answers, asks one short question at a time, and after confirmation actually creates the BOQ and RFQ drafts for PM review. Do not direct the engineer to a separate form, ask them to contact the PM manually, or ask for vendor email addresses. Starting an RFQ does not sign a work order.` : ""}
 - Receive new text and Sarvam-transcribed voice notes from configured staff; save messages, transcripts and response drafts.
 - Ask for missing requirement/BOQ details and help humans review scope, item mappings, quotes and recommendations.
 - Reply to this same verified sender. The dispatcher, not you, controls WhatsApp sending.

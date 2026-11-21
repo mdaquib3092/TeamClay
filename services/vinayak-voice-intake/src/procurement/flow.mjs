@@ -8,6 +8,7 @@ import { VendorDataError, vendorDirectory, availablePerformance, vendorSourceSta
 import { sourceReview, comparable, deliveryWindow } from "./quote-evidence.mjs";
 import { fieldRuns, findRun, runFields, runCommand } from "./field-runs.mjs";
 import { MasterDataError } from "./master-data.mjs";
+import { SiteIntake } from "./site-intake.mjs";
 
 const schema = fs.readFileSync(new URL("./schema.sql", import.meta.url), "utf8");
 const hash = s => createHash("sha256").update(s).digest("hex").slice(0, 12).toUpperCase();
@@ -35,6 +36,7 @@ export class CaseFlow {
     this.template = fs.readFileSync(path.join(root, "templates/rfq_email.txt"), "utf8");
     this.db.exec("PRAGMA foreign_keys=ON; PRAGMA busy_timeout=5000;");
     this.db.exec(schema);
+    this.siteIntake=new SiteIntake(this);
     if (recoverOutbox) this.db.exec("UPDATE wa_flow_outbox SET state='unconfirmed',error='interrupted; inspect provider before retrying' WHERE state='sending'");
     this.lastError = null;
   }
@@ -72,9 +74,11 @@ export class CaseFlow {
     for (const l of c.scope.lines) this.run(`INSERT INTO requirement_lines(requirement_id,material_code,qty,unit,qty_available,shortfall,rfq_qty,action)
       VALUES(?,?,?,?,?,?,?,?)`, c.id, l.code, l.requested, l.unit, l.stock, l.qty, l.qty, l.qty ? "QUOTE_SHORTFALL" : "IN_STOCK");
   }
-  create(msg, user, users, fields, demo, run) {
+  create(msg, user, users, fields, demo, run, siteNotes) {
     check(user.role === "site_engineer", "The registered site engineer opens a requirement.");
     const project = user.project_id, scope = bindRun(captureScope(this.db, this.root, project, fields),run);
+    if(msg.guided===true)scope.intakeMode="guided";
+    if(siteNotes){check(typeof siteNotes==="string"&&siteNotes.length<=300&&!/[\r\n]/.test(siteNotes),"Give the site instruction in one short line.");scope.siteNotes=siteNotes;}
     const pm = assigned(users, "project_manager", project), hod = assigned(users, "hod", project);
     const id = `CASE-${hash(msg.id)}`, stamp = now(), stockOnly = scope.lines.every(l => l.qty === 0);
     this.run(`INSERT INTO requirements(requirement_id,project_id,raised_by,channel,raw_message,needed_by,status,created_at)
@@ -125,9 +129,9 @@ export class CaseFlow {
     return `${c.id}: ${info}\n` + (c.stage === "BOQ_REVIEW" ? this.review(c) : this.comparison(c) ? this.analysis(c, JSON.parse(this.comparison(c))) : "Waiting for quotations.") +
       (mail.some(m => ["unconfirmed","failed"].includes(m.state)) ? "\nDispatch needs attention; check Gmail Sent. No blind resend." : "");
   }
-  async handle(msg, user, users) {
+  async handle(msg, user, users, prior=[]) {
     const raw = msg.user_text.trim();
-    if (!commands.test(raw) && !/^\/(?:rfq|procurement)(?:\s+help)?$/i.test(raw)) return null;
+    if (!commands.test(raw) && !/^\/(?:rfq|procurement)(?:\s+help)?$/i.test(raw)) return this.siteIntake.handle(msg,user,users,prior);
     const previous = this.one("SELECT reply FROM wa_flow_commands WHERE id=?", msg.id);
     if (previous) return previous.reply;
     const parts = raw.split("|").map(s => s.trim()), [verb, id, ...words] = parts[0].toUpperCase().split(/\s+/);
@@ -146,7 +150,10 @@ export class CaseFlow {
       }
       return this.tx(() => {
         let c = initial && this.get(id), reply;
-        if (isNew) ({ c, reply } = this.create(msg, user, users, run&&parts.length===1?runFields(run):parts.slice(1), named||/^DEMO/i.test(parts[0]),run));
+        if (isNew) {
+          ({ c, reply } = this.create(msg, user, users, run&&parts.length===1?runFields(run):parts.slice(1), named||/^DEMO/i.test(parts[0]),run));
+          this.siteIntake.clear(user);
+        }
         else if (verb === "STATUS") reply = this.statusText(c, user);
         else if (["ANALYSIS","ANALYSE","ANALYZE"].includes(verb)) {
           check(["hod","project_manager"].includes(user.role),"Quote comparisons are available to the assigned PM and HOD.");
@@ -178,6 +185,8 @@ export class CaseFlow {
         else if (verb === "CORRECT") {
           check(user.role === "site_engineer" && ["BOQ_REVIEW","IN_STOCK"].includes(c.stage) && words[0] === `B${c.boq_rev}`, "Only the site engineer can correct the current unissued BOQ revision.");
           const s = bindRun(captureScope(this.db, this.root, c.project_id, parts.slice(1)),findRun(c.scope.runKey));
+          if(c.scope.siteNotes)s.siteNotes=c.scope.siteNotes;
+          if(c.scope.intakeMode==="guided")s.intakeMode="guided";
           const covered = s.lines.every(l => !l.qty);
           this.run("UPDATE wa_flow_cases SET scope_json=?,boq_rev=boq_rev+1,stage=? WHERE id=?", JSON.stringify(s), covered ? "IN_STOCK" : "BOQ_REVIEW", id);
           this.run("UPDATE requirements SET needed_by=?,status=? WHERE requirement_id=?", s.needBy, covered ? "IN_STOCK" : "WAITING_PM", id);
@@ -335,8 +344,8 @@ export class CaseFlow {
   async refreshCase(id) {
     for(const inv of this.all("SELECT * FROM wa_flow_mail WHERE case_id=? AND thread_id IS NOT NULL",id))await this.refresh(inv);
   }
-  async deliver(users) {
-    const o=this.one("SELECT * FROM wa_flow_outbox WHERE state='queued' ORDER BY rowid LIMIT 1");if(!o)return;
+  async deliver(users,whatsappReady=true) {
+    const o=this.one("SELECT * FROM wa_flow_outbox WHERE state='queued' AND (? OR kind='email') ORDER BY rowid LIMIT 1",+whatsappReady);if(!o)return;
     const c=this.get(o.case_id), p=JSON.parse(o.payload);
     if(o.boq_rev!==c.boq_rev||(o.quote_rev!==null&&o.quote_rev!==c.quote_rev)||(o.required_stage&&o.required_stage!==c.stage)){
       this.run("UPDATE wa_flow_outbox SET state='superseded' WHERE id=?",o.id);return;
@@ -382,9 +391,9 @@ export class CaseFlow {
         if(o.kind==="email")this.notify(c,`uncertain:${o.id}`,"project_manager",`Could not confirm Gmail acceptance for ${o.target}. Inspect Sent before retrying.`);});
     }
   }
-  async tick(users) {
+  async tick(users,whatsappReady=true) {
     try{
-      await this.deliver(users);
+      await this.deliver(users,whatsappReady);
       const inv=this.one(`SELECT m.* FROM wa_flow_mail m JOIN wa_flow_cases c ON c.id=m.case_id
         WHERE m.thread_id IS NOT NULL AND m.poll_after<=? AND date(json_extract(c.scope_json,'$.needBy'),'+1 day')>=date('now') ORDER BY m.poll_after,m.rowid LIMIT 1`,Date.now());
       if(inv)await this.refresh(inv);
@@ -392,7 +401,7 @@ export class CaseFlow {
     }catch{this.lastError="case_transport_needs_attention";}
   }
   summary() {
-    return {enabled:true,standardMinimum:ROLE_POLICY.controls.minimumEligibleRfqVendors,demoMinimum:2,
+    return {enabled:true,guidedSiteIntake:true,standardMinimum:ROLE_POLICY.controls.minimumEligibleRfqVendors,demoMinimum:2,
       error:this.lastError,sample:SAMPLE,runCommands:fieldRuns.map(runCommand),vendorSources:vendorSourceStatus(this.root),cases:this.all("SELECT id,demo,project_id,stage,boq_rev,quote_rev FROM wa_flow_cases ORDER BY created DESC LIMIT 30"),
       outbox:this.all("SELECT state,COUNT(*) n FROM wa_flow_outbox GROUP BY state")};
   }

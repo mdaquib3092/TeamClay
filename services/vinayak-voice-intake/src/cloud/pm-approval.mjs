@@ -60,9 +60,13 @@ export class PmApproval {
     const {c,u,r}=this.authorised(id,token);
     const drafts=c.scope.vendors.map(v=>({id:v.id,name:v.name,...(c.scope.drafts?.[v.id]||{to:v.email,...renderRfq(this.flow.template,c,v,u)})}));
     const snap=digest(JSON.stringify([c.id,c.boq_rev,c.scope,drafts]));
+    // A case already under PM review may predate the convenience flag. Read
+    // its audit record without changing the signed scope or reissuing a link.
+    const guided=c.scope.intakeMode==="guided"||this.flow.one("SELECT 1 FROM messages WHERE requirement_id=? AND channel='whatsapp' AND direction='inbound' AND json_valid(body) AND json_extract(body,'$.action')='submit_guided_requirement' LIMIT 1",id);
+    const original=guided?this.flow.one("SELECT raw_message FROM requirements WHERE requirement_id=?",id)?.raw_message:null;
     this.flow.run("UPDATE wa_pm_review_links SET reviewed=? WHERE id=?",snap,r.id);
     return {id,revision:c.boq_rev,snapshot:snap,stage:c.stage,project:c.scope.project,site:c.scope.site,needed:c.scope.needBy,deadline:c.scope.deadline,
-      boq:scopeSummary(c),pm:u.name,demo:!!c.demo,runKey:c.scope.runKey||null,drafts,receipts:this.flow.all("SELECT target,state,accepted FROM wa_flow_outbox WHERE case_id=? AND kind='email' ORDER BY target",id)};
+      boq:scopeSummary(c)+(original?`\n\nSite engineer’s original request and answers:\n${original}`:""),pm:u.name,demo:!!c.demo,runKey:c.scope.runKey||null,drafts,receipts:this.flow.all("SELECT target,state,accepted FROM wa_flow_outbox WHERE case_id=? AND kind='email' ORDER BY target",id)};
   }
   approve(id,token,body){
     return this.flow.tx(()=>{

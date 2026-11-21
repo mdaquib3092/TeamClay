@@ -8,6 +8,11 @@ CREATE TABLE IF NOT EXISTS wa_flow_cases (
 CREATE TABLE IF NOT EXISTS wa_flow_commands (
   id TEXT PRIMARY KEY, case_id TEXT, actor TEXT NOT NULL, reply TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS wa_site_drafts (
+  actor TEXT NOT NULL, project TEXT NOT NULL, contact TEXT NOT NULL,
+  state TEXT NOT NULL, touched INTEGER NOT NULL,
+  PRIMARY KEY(actor,project,contact)
+);
 CREATE TABLE IF NOT EXISTS wa_flow_outbox (
   id TEXT PRIMARY KEY, case_id TEXT NOT NULL REFERENCES wa_flow_cases(id),
   kind TEXT NOT NULL, target TEXT NOT NULL, role TEXT, payload TEXT NOT NULL,
